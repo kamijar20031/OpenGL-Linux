@@ -30,7 +30,7 @@ PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 	float speedDiv = 45.0f;
 	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), 0.0f, 0.0f, offset);
 	gravityPoints.push_back(glm::vec3(centerOfDomain));
-	objects.push_back(new ParticleEmitter(importer, glm::vec3(0.0f,0.0f,10.0f), 0.0, 5.0, 1000));
+	objects.push_back(new ParticleEmitter(importer, glm::vec3(0.0f,0.0f,-10.0f), 0.0, 5.0, 1000));
 	// for (int i=0; i<1000;i++)
 	// {
 	// 	float size = (rand()%randCount)/10.0f + 0.3;

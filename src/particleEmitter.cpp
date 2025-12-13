@@ -20,7 +20,7 @@ void ParticleEmitter::generateARandomParticle()
     float speedDiv = 25.0f;
 
     glm::vec3 color = glm::vec3((rand()%255)/255.0f, (rand()%255)/255.0f,(rand()%255)/255.0f);
-    glm::vec3 speed = glm::vec3((1-2*rand()%2)*(rand()%randCount+1)/speedDiv, (1-2*rand()%2)*(rand()%randCount+1)/speedDiv,(1-2*rand()%2)*(rand()%randCount+1)/speedDiv);
+    glm::vec3 speed = glm::vec3((1-2*(rand()%2))*(rand()%randCount+1)/speedDiv, (1-2*(rand()%2))*(rand()%randCount+1)/speedDiv,(1-2*(rand()%2))*(rand()%randCount+1)/speedDiv);
 
     this->particles.push_back(new Particle(importer, this->model.translation, color, speed, this->particleLifespan));
 
@@ -37,13 +37,16 @@ void ParticleEmitter::process(float dt, Shaders* shader, Camera* camera)
     {
         this->generateARandomParticle();
         this->processPhysics(dt);
-        for (Particle* el : particles)
+        for (auto it = particles.begin(); it != particles.end(); )
         {
-            if (!el->isDeleted())
-                el->process(dt, shader, camera);
+            if (!(*it)->isDeleted())
+            {
+                (*it)->process(dt, shader, camera);
+                ++it;
+            }
             else
             {
-                delete el;
+                it = particles.erase(it);
             }
         }
     }

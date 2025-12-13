@@ -2,8 +2,7 @@
 
 glModel::glModel(const char* filer, modelImporter* importer)
 {
-	importer->loadModel(filer);
-	meshes = importer->getMeshes();
+	meshes = importer->loadModel(filer);
 	importer->clear();
 	translation = glm::vec3(0.0f, 0.0f, 0.0f);
 	rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
@@ -14,8 +13,8 @@ glModel::glModel(const char* filer, modelImporter* importer)
 void glModel::draw(Shaders* shader, Camera* camera)
 {
 	glm::mat4 modelMatrix = getMatrix();
-	for (unsigned int i = 0; i < meshes.size(); i++)
-		meshes[i].Mesh::draw(shader, camera, modelMatrix, defColor);
+    for (const auto& mesh : *meshes)
+        mesh->draw(shader, camera, modelMatrix, defColor);
 }
 
 glm::mat4 glModel::getMatrix()

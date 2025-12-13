@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-void modelImporter::loadModel(const char* file)
+std::shared_ptr<const std::vector<std::shared_ptr<Mesh>>> modelImporter::loadModel(const char* file)
 {
     fileStr = std::string(file);
     dir = fileStr.substr(0, fileStr.find_last_of('/'));
@@ -18,13 +18,15 @@ void modelImporter::loadModel(const char* file)
     }
 
     if (found!=-1)
-        this->meshes=loadedMeshes[found];
+        return loadedMeshes[found];
     else
     {
         scene = importer.ReadFile(file, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices);
+        meshes = std::make_shared<std::vector<std::shared_ptr<Mesh>>>();
         crawlNodes(scene->mRootNode);
         loadedModels.push_back(dir);
-        loadedMeshes.push_back(this->meshes);
+        loadedMeshes.push_back(meshes);
+        return meshes;
     }
 }
 
@@ -34,7 +36,7 @@ void modelImporter::crawlNodes(aiNode* node)
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes.push_back(fillMesh(mesh));
+        meshes->push_back(std::make_shared<Mesh>(fillMesh(mesh)));
     }
     for (unsigned int i = 0; i < node->mNumChildren; i++)
     {
