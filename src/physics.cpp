@@ -30,11 +30,16 @@ PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 	float speedDiv = 45.0f;
 	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), 0.0f, 0.0f, offset);
 	gravityPoints.push_back(glm::vec3(centerOfDomain));
-	for (int i=0; i<1000;i++)
-	{
+	objects.push_back(new ParticleEmitter(importer, glm::vec3(0.0f,0.0f,10.0f), 0.0, 5.0, 1000));
+	// for (int i=0; i<1000;i++)
+	// {
+	// 	float size = (rand()%randCount)/10.0f + 0.3;
+	// 	glm::vec3 position = glm::vec3((rand()%randCount-randCount/2)/division,(rand()%randCount-randCount/2)/division,offset+ (rand()%randCount-randCount/2)/division);
+	// 	glm::vec3 speed = glm::vec3((1-2*rand()%2)*(rand()%randCount+1)/speedDiv, (1-2*rand()%2)*(rand()%randCount+1)/speedDiv,(1-2*rand()%2)*(rand()%randCount+1)/speedDiv);
+	// 	glm::vec3 color = glm::vec3((rand()%255)/255.0f, (rand()%255)/255.0f,(rand()%255)/255.0f);
 
-		objects.push_back(new Ball(importer, (rand()%randCount)/10.0f + 0.3, glm::vec3((rand()%randCount-randCount/2)/division,(rand()%randCount-randCount/2)/division,offset+ (rand()%randCount-randCount/2)/division), glm::vec3((1-2*rand()%2)*(rand()%randCount+1)/speedDiv, (1-2*rand()%2)*(rand()%randCount+1)/speedDiv,(1-2*rand()%2)*(rand()%randCount+1)/speedDiv),glm::vec3((rand()%255)/255.0f, (rand()%255)/255.0f,(rand()%255)/255.0f)));
-	}
+	// 	objects.push_back(new Ball(importer, size, position, speed,color));
+	// }
 }
 void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camera)
 {

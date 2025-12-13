@@ -41,7 +41,7 @@ void Ball::checkCollisionWithDomain(glm::vec3 center, float border)
 
 void Ball::process(float dt, Shaders* shader, Camera* camera)
 {
-
+    this->processPhysics(dt);
     ingameObject::process(dt, shader, camera);
 
 }

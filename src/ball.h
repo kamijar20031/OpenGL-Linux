@@ -9,6 +9,7 @@ class Ball : public ingameObject
 {
     float size;
     public:
+    ~Ball() = default;
     Ball(modelImporter *importer, float size, glm::vec3 position, glm::vec3 velocity,glm::vec3 color);
     void process(float dt, Shaders* shader, Camera* camera);
     glm::vec3 getMagnitudeFromCenter(glm::vec3 center);

@@ -10,15 +10,6 @@ ingameObject::ingameObject(const char* name, modelImporter* importer)
 	this->acc = glm::vec3(0.0f,0.0f,0.0f);
 }
 
-glm::vec3 ingameObject::getMagnitudeFromCenter(glm::vec3 center)
-{
-	return glm::vec3(1.0f, 0.0f, 0.0f);
-}
-float ingameObject::getSize()
-{
-	return 1.0f;
-}
-
 glm::vec3 ingameObject::getVelocity()
 {
 	return this->vel;
@@ -33,10 +24,15 @@ void ingameObject::resetForce()
 {
 	this->acc = glm::vec3(0.0f);
 }
-void ingameObject::process(float dt, Shaders* shader, Camera* camera)
+
+void ingameObject::processPhysics(float dt)
 {
 	this->time += dt;
 	this->vel+= dt*acc;
 	this->model.translation+= dt*vel;
+}
+
+void ingameObject::process(float dt, Shaders* shader, Camera* camera)
+{
 	this->model.draw(shader, camera);
 }

@@ -1,6 +1,7 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
+#include "particleEmitter.h"
 #include"ball.h"
 class PhysicsModule
 {
