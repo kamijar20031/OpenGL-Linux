@@ -13,7 +13,7 @@ Ball::Ball(modelImporter *importer, float size, glm::vec3 position, glm::vec3 ve
 
 float Ball::getSize()
 {
-    return this->size;
+    return this->size*0.01f;
 }
 
 glm::vec3 Ball::getMagnitudeFromCenter(glm::vec3 center)

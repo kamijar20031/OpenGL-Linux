@@ -9,6 +9,7 @@ class PhysicsModule
     std::vector <std::shared_ptr<ParticleEmitter>> particleEmitters;
     void applyForceGrav(ingameObject* object);
     void applyForceAeroDyn(ingameObject* object);
+    void applyCollisions(ingameObject* object);
 public:
     PhysicsModule() {};
     PhysicsModule(modelImporter* importer, Shaders* shaderprogram);
