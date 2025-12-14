@@ -7,12 +7,7 @@ ParticleEmitter::ParticleEmitter(modelImporter *importer, glm::vec3 position, do
     this->timeToLive=timeToLive;
     this->particleLifespan=particleLifespan;
     this->maxParticles=numParticles;
-}
-ParticleEmitter::~ParticleEmitter()
-{
-    for (Particle* p : particles)
-        delete p;
-    particles.clear();
+    this->maxParticles=1000;
 }
 void ParticleEmitter::generateARandomParticle()
 {
@@ -22,7 +17,7 @@ void ParticleEmitter::generateARandomParticle()
     glm::vec3 color = glm::vec3((rand()%255)/255.0f, (rand()%255)/255.0f,(rand()%255)/255.0f);
     glm::vec3 speed = glm::vec3((1-2*(rand()%2))*(rand()%randCount+1)/speedDiv, (1-2*(rand()%2))*(rand()%randCount+1)/speedDiv,(1-2*(rand()%2))*(rand()%randCount+1)/speedDiv);
 
-    this->particles.push_back(new Particle(importer, this->model.translation, color, speed, this->particleLifespan));
+    this->particles.emplace_back(std::make_shared<Particle>(importer, this->model.translation, color, speed, this->particleLifespan));
 
 }
 
@@ -35,20 +30,12 @@ void ParticleEmitter::process(float dt, Shaders* shader, Camera* camera)
     }
     else
     {
-        this->generateARandomParticle();
-        this->processPhysics(dt);
-        for (auto it = particles.begin(); it != particles.end(); )
+        if (particles.size() <maxParticles)
         {
-            if (!(*it)->isDeleted())
-            {
-                (*it)->process(dt, shader, camera);
-                ++it;
-            }
-            else
-            {
-                it = particles.erase(it);
-            }
+            for (int i=0; i<5; i++)
+                this->generateARandomParticle();
         }
+        this->processPhysics(dt);
     }
 
 }

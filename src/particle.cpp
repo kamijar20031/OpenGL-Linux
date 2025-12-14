@@ -2,7 +2,7 @@
 
 Particle::Particle(modelImporter *importer, glm::vec3& position, glm::vec3& color, glm::vec3& startVel, double timeToBeAlive) : ingameObject("resources/models/ball/ball.obj", importer)
 {
-    this->model.scale = glm::vec3(0.01f,0.01f,0.01f);
+    this->model.scale = glm::vec3(0.02f,0.02f,0.02f);
     this->model.translation = position;
     this->vel = startVel;
     this->model.defColor = color;
