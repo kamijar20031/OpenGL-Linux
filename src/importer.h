@@ -3,6 +3,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <memory>
 #include "mesh.h"
 
 class modelImporter
@@ -10,7 +11,9 @@ class modelImporter
 	const aiScene* scene;
 	Assimp::Importer importer;
 
-	std::vector<Mesh> meshes;
+	
+	std::shared_ptr<std::vector<std::shared_ptr<Mesh>>> meshes;
+
 	std::string fileStr;
 	std::string dir;
 
@@ -18,7 +21,7 @@ class modelImporter
 	std::vector <Texture> loadedTex;
 
 	std::vector<std::string> loadedModels;
-	std::vector<std::vector <Mesh>> loadedMeshes;
+	std::vector<std::shared_ptr<std::vector<std::shared_ptr<Mesh>>>> loadedMeshes;
 
 	void crawlNodes(aiNode* node);
 	Mesh fillMesh(aiMesh* mesh);
@@ -26,8 +29,7 @@ class modelImporter
 
 public:
 	modelImporter() {};
-	void loadModel(const char* file);
-	std::vector<Mesh> getMeshes() { return meshes; }
+	std::shared_ptr<const std::vector<std::shared_ptr<Mesh>>> loadModel(const char* file);
 	std::vector<Texture> loadTextures(aiMaterial* mat, aiTextureType type, const char* typeName);
 	void clear() { meshes = {}; loadedNames = {}; loadedTex = {}; }
 };
