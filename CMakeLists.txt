@@ -49,11 +49,16 @@ FetchContent_MakeAvailable(glfw glm assimp imgui glad stb)
 
 find_package(OpenGL REQUIRED)
 
-file(GLOB SRCS CONFIGURE_DEPENDS "src/*.cpp" "src/*.c")
+
+file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS src/**/*.cpp src/**/.c)
 add_executable(OpenGL_Demo ${SRCS})
 
 target_include_directories(OpenGL_Demo PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/main
+    ${CMAKE_SOURCE_DIR}/src/objects
+    ${CMAKE_SOURCE_DIR}/src/opengl
+    ${CMAKE_SOURCE_DIR}/src/physics
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${glfw_SOURCE_DIR}/include
