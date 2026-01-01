@@ -1,9 +1,110 @@
 #include "colliders.h"
 
 
+struct Face
+{
+    glm::vec3 a, b, c;
+    glm::vec3 normal;
+    float distance;
+};
+
+static Face makeFace(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c)
+{
+    Face f;
+    f.a = a;
+    f.b = b;
+    f.c = c;
+    f.normal = glm::normalize(glm::cross(b - a, c - a));
+    if (glm::dot(f.normal, a) < 0.0f)
+        f.normal = -f.normal;
+    f.distance = glm::dot(f.normal, a);
+    return f;
+}
+
+static int findClosestFace(const std::vector<Face>& faces)
+{
+    int idx = 0;
+    float minDist = faces[0].distance;
+    for (int i = 1; i < faces.size(); ++i)
+    {
+        if (faces[i].distance < minDist)
+        {
+            minDist = faces[i].distance;
+            idx = i;
+        }
+    }
+    return idx;
+}
+
 struct Simplex {
     std::vector<glm::vec3> pts;
 };
+
+
+bool EPA(Collider* a, glm::vec3 posA, Collider* b, glm::vec3 posB, const Simplex& s)
+{
+	auto support = [&](glm::vec3 dir) {return a->support(dir)+ posA - (b->support(-dir) + posB);};
+    std::vector<Face> faces;
+    faces.push_back(makeFace(s.pts[0], s.pts[1], s.pts[2]));
+    faces.push_back(makeFace(s.pts[0], s.pts[3], s.pts[1]));
+    faces.push_back(makeFace(s.pts[0], s.pts[2], s.pts[3]));
+    faces.push_back(makeFace(s.pts[1], s.pts[3], s.pts[2]));
+    for (int iter = 0; iter < 32; ++iter)
+    {
+        int closestIdx = findClosestFace(faces);
+        Face& closest = faces[closestIdx];
+        glm::vec3 p = support(closest.normal);
+        float d = glm::dot(p, closest.normal);
+        if (d - closest.distance < 1e-6f)
+        {
+			a->resultingEPA.normal =closest.normal;
+            a->resultingEPA.depth = d;
+            return true;
+        }
+        std::vector<std::pair<glm::vec3, glm::vec3>> edges;
+        for (int i = 0; i < faces.size();)
+        {
+            if (glm::dot(faces[i].normal, p - faces[i].a) > 0.0f)
+            {
+                edges.emplace_back(faces[i].a, faces[i].b);
+                edges.emplace_back(faces[i].b, faces[i].c);
+                edges.emplace_back(faces[i].c, faces[i].a);
+                faces.erase(faces.begin() + i);
+            }
+            else
+                ++i;
+        }
+
+        auto isSameEdge = [](const std::pair<glm::vec3, glm::vec3>& e1,
+                              const std::pair<glm::vec3, glm::vec3>& e2)
+        {
+            return (glm::length(e1.first - e2.second) < 1e-6f && glm::length(e2.first - e1.second)< 1e-6f);
+        };
+
+        std::vector<std::pair<glm::vec3, glm::vec3>> horizon;
+
+        for (int i = 0; i < edges.size(); ++i)
+        {
+            bool shared = false;
+            for (int j = 0; j < edges.size(); ++j)
+            {
+                if (i != j && isSameEdge(edges[i], edges[j]))
+                {
+                    shared = true;
+                    break;
+                }
+            }
+            if (!shared)
+                horizon.push_back(edges[i]);
+        }
+        for (auto& e : horizon)
+        {
+            faces.push_back(makeFace(e.first, e.second, p));
+        }
+    }
+
+    return false;
+}
 
 bool SimplexLine(Simplex& s, glm::vec3& dir)
 {
@@ -125,7 +226,7 @@ bool handleSimplex(Simplex& s, glm::vec3& dir)
     return false;
 }
 
-bool gjkIntersect(ConvexCollider* a, glm::vec3 posA, Collider* b, glm::vec3 posB)
+bool gjkIntersect(Collider* a, glm::vec3 posA, Collider* b, glm::vec3 posB)
 {
 	auto support = [&](glm::vec3 dir) {return a->support(dir)+ posA - (b->support(-dir) + posB);};
 	glm::vec3 dir = glm::vec3(1.0f,0.0f,0.0f);
@@ -133,7 +234,7 @@ bool gjkIntersect(ConvexCollider* a, glm::vec3 posA, Collider* b, glm::vec3 posB
 	glm::vec3 sup = support(dir);
 	simplex.pts.push_back(sup);
 	dir = -sup;
-    for (int i =0; i<15; i++) 
+    for (int i =0; i<30; i++) 
 	{
         sup = support(dir);
         if (glm::dot(sup, dir) < 1e-6f)
@@ -141,8 +242,7 @@ bool gjkIntersect(ConvexCollider* a, glm::vec3 posA, Collider* b, glm::vec3 posB
         simplex.pts.push_back(sup);
         if (handleSimplex(simplex, dir))
 		{
-			a->setLastDirection(dir);
-			return true;
+			return EPA(a, posA, b, posB, simplex);
 		}
             
     }
@@ -166,7 +266,7 @@ bool ConvexCollider::testCollision( PhysicsBody* a,  Collider* b,  PhysicsBody* 
 bool SphereCollider::collidedWithSphere( PhysicsBody* a,  SphereCollider* b,  PhysicsBody* bBody) 
 {
     float r = this->getRadius() + b->getRadius();
-	glm::vec3 d = (a->getPosition() + this->getLocalOffset()) - (bBody->getPosition() + b->getLocalOffset());
+	glm::vec3 d = (a->getPosition()) - (bBody->getPosition());
 	float dist2 = glm::dot(d, d);
 	return dist2 <= r * r;	
 }

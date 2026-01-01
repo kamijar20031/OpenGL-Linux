@@ -32,6 +32,9 @@ class PhysicsModule
     void preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera);
     void applyForceGrav(GameObject* object);
     void applyForceAeroDyn(GameObject* object);
+    template<typename T>
+    void applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera);
+    void simpleCollision(GameObject* o1, GameObject* o2);
     void applyCollision(GameObject* o1, GameObject* o2);
     void applyCollisions(GameObject* o1, GameObject* o2);
     void addElementToGrid(GameObject* o);

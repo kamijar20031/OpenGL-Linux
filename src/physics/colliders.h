@@ -8,12 +8,18 @@ class Collider;
 class SphereCollider;
 class ConvexCollider;
 
+struct EPAResult
+{
+    glm::vec3 normal;
+    float depth;
+};
 
 class Collider
 {
+    
     glm::vec3 localOffset;
 public:
-
+    EPAResult resultingEPA;
     Collider(glm::vec3 offset) : localOffset(offset) {}
     virtual ~Collider();
     virtual bool testCollision( PhysicsBody* a,  Collider* b,  PhysicsBody* bBody)  = 0;
@@ -21,17 +27,16 @@ public:
     virtual bool collidedWithConvex( PhysicsBody* a,  ConvexCollider* b,  PhysicsBody* bBody)  = 0;
     virtual glm::vec3 support(glm::vec3 d)  = 0;
     glm::vec3 getLocalOffset() {return localOffset;}
-    virtual glm::vec3 getNormal() {return glm::vec3(2.0f,2.0f,2.0f);}
+    virtual bool isConvex() {return false;}
     virtual float getSize() = 0;
 };
 
 class SphereCollider : public Collider 
 {
-    glm::vec3 center;
     float radius;
     
 public:
-    SphereCollider(float r, glm::vec3 position, glm::vec3 offset=glm::vec3(0.0f)) : Collider(offset), center{position}, radius(r) {}
+    SphereCollider(float r, glm::vec3 offset=glm::vec3(0.0f)) : Collider(offset),  radius(r) {}
     bool testCollision( PhysicsBody* a,  Collider* b,  PhysicsBody* bBody) ;
     bool collidedWithSphere( PhysicsBody* a,  SphereCollider* b,  PhysicsBody* bBody) ;
     bool collidedWithConvex( PhysicsBody* a,  ConvexCollider* b,  PhysicsBody* bBody) ;
@@ -55,21 +60,18 @@ class ConvexCollider : public Collider
     // R h - Cone
     // r h - Capsule
     glm::vec3 values;
-    glm::vec3 lastDirectionUsed;
 public:
+    
     ConvexCollider(glm::vec3 extents,ConvexType typeOfConvex,  glm::vec3 offset=glm::vec3(0.0f)) : Collider(offset), values(extents), type(typeOfConvex) {}
     bool testCollision( PhysicsBody* a,  Collider* b,  PhysicsBody* bBody) ;
     bool collidedWithSphere( PhysicsBody* a,  SphereCollider* b,  PhysicsBody* bBody) ;
     bool collidedWithConvex( PhysicsBody* a,  ConvexCollider* b,  PhysicsBody* bBody) ;
-    glm::vec3 support(glm::vec3 d) ;
-    void setLastDirection(glm::vec3 dir) {this->lastDirectionUsed = dir;}
-    glm::vec3 getNormal() {
-        return glm::normalize(lastDirectionUsed);
-    }
+    glm::vec3 support(glm::vec3 d);
     float getSize() 
     {
         return std::max(values.x, std::max(values.y, values.z));
     }
+    bool isConvex() {return true;}
 };
 
 
