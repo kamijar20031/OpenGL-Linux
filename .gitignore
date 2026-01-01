@@ -1,2 +1,9 @@
 /build/
 /.vscode/
+/_deps/
+/CMakeFiles/
+cmake_install.cmake
+CMakeCache.txt
+libimgui_lib.a
+Makefile
+src/imgui.ini
