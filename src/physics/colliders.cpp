@@ -1,83 +1,125 @@
 #include "colliders.h"
 
+
 struct Simplex {
     std::vector<glm::vec3> pts;
 };
+
+bool SimplexLine(Simplex& s, glm::vec3& dir)
+{
+	glm::vec3 A = s.pts[1];
+	glm::vec3 B = s.pts[0];
+
+	glm::vec3 AB = B-A;
+	glm::vec3 A0 = -A;
+
+	if (glm::dot(AB, A0) > 0.0f)
+	{
+		dir = glm::cross(glm::cross(AB, A0),AB);
+	}
+	else
+	{
+		s.pts = {A};
+		dir = A0;
+	}
+	return false;
+}
+
+bool SimplexTriangle(Simplex& s, glm::vec3& dir)
+{
+	glm::vec3 A = s.pts[2];
+    glm::vec3 B = s.pts[1];
+    glm::vec3 C = s.pts[0];
+    glm::vec3 AB = B - A;
+    glm::vec3 AC = C - A;
+    glm::vec3 A0 = -A;
+    glm::vec3 ABC = glm::cross(AB, AC);
+	if (glm::dot(glm::cross(ABC, AC),A0)> 0.0f)
+	{
+		if (glm::dot(AC,A0) > 0.0f)
+		{
+			s.pts = {C,A}; 
+			dir = glm::cross(glm::cross(AC,A0), AC);
+		}
+		else
+		{	
+			s.pts = {B,A}; 
+			return SimplexLine(s, dir);
+		}
+	}
+	else
+	{
+		if (glm::dot(glm::cross(AB, ABC),A0) > 0.0f)
+		{
+			s.pts = {B,A}; 
+			return SimplexLine(s, dir);
+		}
+		else
+		{	
+			if (glm::dot(ABC, A0) > 0.0f)
+			{
+				dir = ABC;
+			}
+			else
+			{
+				s.pts = {B, C, A}; 
+				dir = -ABC;
+			}
+
+		}
+	}
+	return false;
+}
+
+bool SimplexTetrahedron(Simplex& s, glm::vec3& dir)
+{
+    glm::vec3 A = s.pts[3];
+	glm::vec3 B = s.pts[2];
+	glm::vec3 C = s.pts[1];
+	glm::vec3 D = s.pts[0];
+	
+	glm::vec3 AB = B -A;
+	glm::vec3 AC = C -A;
+	glm::vec3 AD = D -A;
+	glm::vec3 A0 = -A;
+
+	glm::vec3 ABC = glm::cross(AB, AC);
+	glm::vec3 ACD = glm::cross(AC, AD);
+	glm::vec3 ADB = glm::cross(AD, AB);
+
+	if (glm::dot(ABC, A0) > 0.0f)
+	{
+		s.pts = {C, B, A};
+		return SimplexTriangle(s, dir);
+	}
+	if (glm::dot(ACD, A0) > 0.0f)
+	{
+		s.pts = {D, C, A};
+		return SimplexTriangle(s, dir);
+	}
+	if (glm::dot(ADB, A0) > 0.0f)
+	{
+		s.pts = {B, D, A};
+		return SimplexTriangle(s, dir);
+	}
+
+	return true;
+
+}
 
 bool handleSimplex(Simplex& s, glm::vec3& dir)
 {
 	if (s.pts.size()==2)
 	{
-		glm::vec3 A = s.pts[1];
-		glm::vec3 B = s.pts[0];
-
-		glm::vec3 AB = B-A;
-		glm::vec3 A0 = -A;
-
-		if (glm::dot(AB, A0) > 0)
-		{
-			dir = glm::cross(glm::cross(AB, A0),AB);
-		}
-		else
-		{
-			s.pts = {A};
-			dir = A0;
-		}
-		return false;
+		return SimplexLine(s, dir);
 	}
 	else if (s.pts.size() == 3)
 	{
-		glm::vec3 A = s.pts[2];
-        glm::vec3 B = s.pts[1];
-        glm::vec3 C = s.pts[0];
-        glm::vec3 AB = B - A;
-        glm::vec3 AC = C - A;
-        glm::vec3 AO = -A;
-        glm::vec3 ABC = glm::cross(AB, AC);
-        glm::vec3 ABperp = glm::cross(glm::cross(AC, AB), AB);
-        if (glm::dot(ABperp, AO) > 0) {
-            s.pts = { A, B };
-            dir = ABperp;
-            return false;
-        }
-        glm::vec3 ACperp = glm::cross(glm::cross(AB, AC), AC);
-        if (glm::dot(ACperp, AO) > 0) {
-            s.pts = { A, C };
-            dir = ACperp;
-            return false;
-        }
-        dir = (glm::dot(ABC, AO) > 0 ? ABC : -ABC);
-        return false;
+		return SimplexTriangle(s, dir);
 	}
 	else if (s.pts.size() == 4) 
 	{
-        glm::vec3 A = s.pts[3];
-		glm::vec3 B = s.pts[2];
-		glm::vec3 C = s.pts[1];
-		glm::vec3 D = s.pts[0];
-		glm::vec3 AO = -A;
-		glm::vec3 ABC = glm::cross(B-A, C-A);
-		if (glm::dot(ABC, AO) > 0) 
-		{ 
-			s.pts = {A,B,C}; 
-			dir = ABC; 
-			return false; 
-		}
-		glm::vec3 ACD = glm::cross(C-A, D-A);
-		if (glm::dot(ACD, AO) > 0) 
-		{ 
-			s.pts = {A,C,D}; 
-			dir = ACD; 
-			return false; 
-		}
-		glm::vec3 ADB = glm::cross(D-A, B-A);
-		if (glm::dot(ADB, AO) > 0) 
-		{ 
-			s.pts = {A,D,B}; 
-			dir = ADB; 
-			return false; 
-		}
-		return true;
+		return SimplexTetrahedron(s, dir);
     }
 
     return false;
@@ -88,17 +130,21 @@ bool gjkIntersect(ConvexCollider* a, glm::vec3 posA, Collider* b, glm::vec3 posB
 	auto support = [&](glm::vec3 dir) {return a->support(dir)+ posA - (b->support(-dir) + posB);};
 	glm::vec3 dir = glm::vec3(1.0f,0.0f,0.0f);
 	Simplex simplex;
-	glm::vec3 A = support(dir);
-	dir = -A;
-	simplex.pts.push_back(A);
-    for (int i = 0; i < 10; ++i) {
-        glm::vec3 p = support(dir);
-        if (glm::dot(p, dir) <= 0)
+	glm::vec3 sup = support(dir);
+	simplex.pts.push_back(sup);
+	dir = -sup;
+    for (int i =0; i<15; i++) 
+	{
+        sup = support(dir);
+        if (glm::dot(sup, dir) < 1e-6f)
             return false;
-        simplex.pts.push_back(p);
-		a->setLastDirection(dir);
+        simplex.pts.push_back(sup);
         if (handleSimplex(simplex, dir))
-            return true;
+		{
+			a->setLastDirection(dir);
+			return true;
+		}
+            
     }
     return false;
 
@@ -179,7 +225,5 @@ glm::vec3 ConvexCollider::support(glm::vec3 d)
 
 glm::vec3 SphereCollider::support(glm::vec3 d) 
 {
-	glm::vec3 n = glm::length(d) >0 ? glm::normalize(d) : glm::vec3(0.0f,1.0f,0.0f);
-
-	return center + n*radius;
+	return glm::normalize(d)*radius;
 }

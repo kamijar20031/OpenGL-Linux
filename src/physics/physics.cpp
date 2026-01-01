@@ -1,5 +1,32 @@
 #include "physics.h"
 
+PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
+{
+    int randCount = 50;
+	float offset = -10.0f;
+	borderOfDomain = 4.0f;
+	centerOfDomain = glm::vec3(0.0f,0.0f,offset);
+	float division = (float)(randCount/2)/(borderOfDomain-0.1f);
+	float speedDiv = 45.0f;
+	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), 0.0f, 0.0f, offset);
+	gravityPoints.push_back(glm::vec3(centerOfDomain));
+	particleEmitters.emplace_back(std::make_shared<ParticleEmitter>(importer, glm::vec3(0.0f,0.0f,-10.0f), 0.0, 5.0, 1000));
+	for (int i=0;i<200; i++)
+	{
+		float size = (rand()%randCount)/1.5f + 1.5;
+		glm::vec3 position = glm::vec3((rand()%randCount-randCount/2)/division,(rand()%randCount-randCount/2)/division,offset+ (rand()%randCount-randCount/2)/division);
+		glm::vec3 speed= glm::vec3(0.0,0.0,0.0);
+		glm::vec3 color = glm::vec3((rand()%255)/255.0f, (rand()%255)/255.0f,(rand()%255)/255.0f);
+
+		objects.emplace_back(std::make_shared<Ball>(importer, size, position, speed,color));
+	}
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(200.0f,10.0f,200.0f), glm::vec3(0.0f,-1.0f, offset), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f)));
+
+}
+
+
+
+
 float cellSize = 1.0f;
 
 CellKey getCell(glm::vec3 pos)
@@ -44,23 +71,12 @@ void PhysicsModule::applyCollisions(GameObject* o1, GameObject* o2)
 void PhysicsModule::applyCollision(GameObject* o1, GameObject* o2)
 {
 	glm::vec3 n;
+	glm::vec3 delta = o1->body.getPosition() - o2->body.getPosition();
+	float len2 = glm::dot(delta, delta);
+	if (len2 < 1e-6f)
+		return;
+	n = delta / (float)sqrt(len2);
 
-	// Raczej nie zdarzy sie ze beda takie same przy convexach
-	if (o1->colliders->getNormal().x == 2.0f && o2->colliders->getNormal().x == 2.0f)
-	{
-		glm::vec3 delta = o1->body.getPosition() - o2->body.getPosition();
-		float len2 = glm::dot(delta, delta);
-		if (len2 < 1e-6f)
-			return;
-		n = delta / (float)sqrt(len2);
-	}
-	else
-	{
-		if (o1->colliders->getNormal().x == 2.0f)
-			n = o2->colliders->getNormal();
-		else
-			n = o1->colliders->getNormal();
-	}
 
 	float v1n = glm::dot(o1->body.getVelocity(), n);
 	float v2n = glm::dot(o2->body.getVelocity(), n);
@@ -81,28 +97,7 @@ void PhysicsModule::applyCollision(GameObject* o1, GameObject* o2)
 	o2->body.setVelocity(v2t + v2ni * n);
 }
 
-PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
-{
-    int randCount = 50;
-	float offset = -10.0f;
-	borderOfDomain = 4.0f;
-	centerOfDomain = glm::vec3(0.0f,0.0f,offset);
-	float division = (float)(randCount/2)/(borderOfDomain-0.1f);
-	float speedDiv = 45.0f;
-	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), 0.0f, 0.0f, offset);
-	gravityPoints.push_back(glm::vec3(centerOfDomain));
-	particleEmitters.emplace_back(std::make_shared<ParticleEmitter>(importer, glm::vec3(0.0f,0.0f,-10.0f), 0.0, 5.0, 1000));
-	for (int i=0;i<200; i++)
-	{
-		float size = (rand()%randCount)/1.5f + 1.5;
-		glm::vec3 position = glm::vec3((rand()%randCount-randCount/2)/division,(rand()%randCount-randCount/2)/division,offset+ (rand()%randCount-randCount/2)/division);
-		glm::vec3 speed= glm::vec3(0.0,0.0,0.0);
-		glm::vec3 color = glm::vec3((rand()%255)/255.0f, (rand()%255)/255.0f,(rand()%255)/255.0f);
 
-		objects.emplace_back(std::make_shared<Ball>(importer, size, position, speed,color));
-	}
-
-}
 void PhysicsModule::addElementToGrid(GameObject* o)
 {
 	glm::vec3 pos = o->body.getPosition();

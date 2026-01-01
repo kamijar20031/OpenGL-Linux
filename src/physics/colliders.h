@@ -2,6 +2,7 @@
 #define COLLIDER_H_
 
 #include "physicsBody.h"
+#include <iostream>
 
 class Collider;
 class SphereCollider;
@@ -62,7 +63,9 @@ public:
     bool collidedWithConvex( PhysicsBody* a,  ConvexCollider* b,  PhysicsBody* bBody) ;
     glm::vec3 support(glm::vec3 d) ;
     void setLastDirection(glm::vec3 dir) {this->lastDirectionUsed = dir;}
-    glm::vec3 getNormal() {return glm::normalize(lastDirectionUsed);}
+    glm::vec3 getNormal() {
+        return glm::normalize(lastDirectionUsed);
+    }
     float getSize() 
     {
         return std::max(values.x, std::max(values.y, values.z));
