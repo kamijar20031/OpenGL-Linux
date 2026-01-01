@@ -11,6 +11,7 @@ public:
     ~Particle() = default;
     Particle(modelImporter *importer, glm::vec3 position, glm::vec3 color, glm::vec3 startVel, double _timeToBeAlive) : Ball(importer, 2.0f, position, startVel, color), timeToBeAlive(_timeToBeAlive) {}
     void process(float dt, Shaders* shader, Camera* camera);
+    virtual bool collides() {return false;}
 
 };
 

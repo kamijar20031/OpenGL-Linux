@@ -18,6 +18,8 @@ public:
 
     GameObject(const char* name, modelImporter *importer);
     virtual ~GameObject() = default;
+    virtual bool collidesWith(GameObject* o) {return o->collides();}
+    virtual bool collides() {return true;}
     virtual void process(float dt, Shaders* shader, Camera* camera);
     bool isDeleted() {return deleted;}
 	long getID() {return this->id;}

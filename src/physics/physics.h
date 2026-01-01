@@ -3,19 +3,42 @@
 
 #include "particleEmitter.h"
 #include"ball.h"
+#include <unordered_map>
+
+
+
+
+using CellKey = std::tuple<int,int,int>;
+extern float cellSize;
+
+struct CellKeyHash 
+{
+    std::size_t operator()(const CellKey& k) const
+    {
+        int x = std::get<0>(k);
+        int y = std::get<1>(k);
+        int z = std::get<2>(k);
+        return (x * 73856093) ^ (y * 19349663) ^ (z * 83492791);
+    }
+};
+
 class PhysicsModule
 {
     std::vector <std::shared_ptr<GameObject>> objects;
-    std::vector <std::shared_ptr<ParticleEmitter>> particleEmitters;
+    std::vector <std::shared_ptr<ParticleEmitter>> 
+    particleEmitters;
+    std::unordered_map<CellKey, std::vector<GameObject*>, CellKeyHash> grid;
+    template<typename T>
+    void preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera);
     void applyForceGrav(GameObject* object);
     void applyForceAeroDyn(GameObject* object);
     void applyCollision(GameObject* o1, GameObject* o2);
-    void applyCollisions(GameObject* object);
+    void applyCollisions(GameObject* o1, GameObject* o2);
+    void addElementToGrid(GameObject* o);
+    void refreshGrid(float fpsTime, Shaders* shader, Camera* camera);
 public:
     PhysicsModule() {};
     PhysicsModule(modelImporter* importer, Shaders* shaderprogram);
-    template<typename T>
-    void applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elements,  float fpsTime, Shaders* shader, Camera* camera);
     void process(float fpsTime, Shaders* shaderProgram, Camera* camera);
     void addNewGravityCenter(glm::vec3 pos);
     bool gravity = false;

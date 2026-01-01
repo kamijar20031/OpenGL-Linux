@@ -1,5 +1,17 @@
 #include "physics.h"
 
+float cellSize = 1.0f;
+
+CellKey getCell(glm::vec3 pos)
+{
+	return {
+		(int)std::floor(pos.x/cellSize),
+		(int)std::floor(pos.y/cellSize),
+		(int)std::floor(pos.z/cellSize)
+	};
+}
+
+
 void PhysicsModule::applyForceGrav(GameObject* object)
 {
     
@@ -18,17 +30,13 @@ void PhysicsModule::applyForceAeroDyn(GameObject* object)
     object->body.applyForce(-6.0f*object->body.getVelocity()*(float)(pow(10,mu))*object->getSize()*(float)(std::numbers::pi));
 }
 
-void PhysicsModule::applyCollisions(GameObject* object)
+void PhysicsModule::applyCollisions(GameObject* o1, GameObject* o2)
 {
-	for (auto& el : objects)
+	if (o1->collidesWith(o2))
 	{
-		if (object->getID()!=el->getID())
+		if (o1->colliders->testCollision(&(o1->body), (o2->colliders).get(), &(o2->body)))
 		{
-
-			if (object->colliders->testCollision(&(object->body), (el->colliders).get(), &(el->body)))
-			{
-				applyCollision(object, el.get());
-			}
+			applyCollision(o1, o2);
 		}
 	}
 };
@@ -94,47 +102,69 @@ PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 		objects.emplace_back(std::make_shared<Ball>(importer, size, position, speed,color));
 	}
 
-
-	// for (int i=0; i<1000;i++)
-	// {
-	// 	float size = (rand()%randCount)/10.0f + 0.3;
-	// 	glm::vec3 position = glm::vec3((rand()%randCount-randCount/2)/division,(rand()%randCount-randCount/2)/division,offset+ (rand()%randCount-randCount/2)/division);
-	// 	glm::vec3 speed = glm::vec3((1-2*rand()%2)*(rand()%randCount+1)/speedDiv, (1-2*rand()%2)*(rand()%randCount+1)/speedDiv,(1-2*rand()%2)*(rand()%randCount+1)/speedDiv);
-	// 	glm::vec3 color = glm::vec3((rand()%255)/255.0f, (rand()%255)/255.0f,(rand()%255)/255.0f);
-
-	// 	objects.emplace_back(std::make_shared<Ball>(importer, size, position, speed,color));
-	// }
+}
+void PhysicsModule::addElementToGrid(GameObject* o)
+{
+	glm::vec3 pos = o->body.getPosition();
+	float size = o->getSize();
+	CellKey keyMin = getCell(glm::vec3(pos.x - size, pos.y - size, pos.z-size));
+	CellKey keyMax = getCell(glm::vec3(pos.x + size, pos.y + size, pos.z+size));
+	for (int i =std::get<0>(keyMin); i<=std::get<0>(keyMax);i++)
+	{
+		for (int j =std::get<1>(keyMin); j<=std::get<1>(keyMax);j++)
+		{
+			for (int k=std::get<2>(keyMin); k<=std::get<2>(keyMax); k++)
+			{
+				CellKey temp{i, j, k};
+				grid[temp].push_back(o);
+			}
+		}
+	}
 }
 template<typename T>
-void PhysicsModule::applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera)
+void PhysicsModule::preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera)
 {
 	for (auto it = elements.begin(); it != elements.end(); )
-    {
-        if (!(*it)->isDeleted())
-        {
+	{
+		if (!(*it)->isDeleted())
+		{
+			addElementToGrid(it->get());
 			if (gravity)
 				this->applyForceGrav(it->get());
 			if (aero)
 				this->applyForceAeroDyn(it->get());
-            applyCollisions(it->get());
 			(*it)->process(fpsTime, shader, camera);
-            ++it;
-        }
-        else
-        {
-            it = elements.erase(it);
-        }
-    }
+			it++;
+		}
+		else
+		{
+			it = elements.erase(it);
+		}
+	}
 }
-void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camera)
+void PhysicsModule::refreshGrid(float fpsTime, Shaders* shader, Camera* camera)
 {
-	applyPhysicsToElements(objects, fpsTime, shaderProgram, camera);
-	applyPhysicsToElements(particleEmitters, fpsTime, shaderProgram, camera);
+	grid.clear();
+	preprocessVector(particleEmitters, fpsTime, shader, camera);
+	preprocessVector(objects, fpsTime, shader, camera);
+
 	for (auto it = particleEmitters.begin(); it != particleEmitters.end(); )
     {
-		applyPhysicsToElements((*it)->particles,  fpsTime, shaderProgram, camera);
-		++it;
+		preprocessVector((*it)->particles, fpsTime, shader, camera);
+		it++;
     }
+
+}
+
+void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camera)
+{
+
+	this->refreshGrid(fpsTime, shaderProgram, camera);
+	for (auto& [key, cell] : grid)
+		for (size_t i = 0; i < cell.size(); ++i)
+			for (size_t j = i + 1; j < cell.size(); ++j)
+				applyCollisions(cell[i], cell[j]);
+
 }
 void PhysicsModule::addNewGravityCenter(glm::vec3 pos)
 {

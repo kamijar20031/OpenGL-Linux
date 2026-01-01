@@ -7,10 +7,12 @@ class Collider;
 class SphereCollider;
 class ConvexCollider;
 
+
 class Collider
 {
     glm::vec3 localOffset;
 public:
+
     Collider(glm::vec3 offset) : localOffset(offset) {}
     virtual ~Collider();
     virtual bool testCollision( PhysicsBody* a,  Collider* b,  PhysicsBody* bBody)  = 0;

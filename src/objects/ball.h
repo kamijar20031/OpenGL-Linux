@@ -11,6 +11,7 @@ class Ball : public GameObject
     ~Ball() = default;
     Ball(modelImporter *importer, float size, glm::vec3 position, glm::vec3 velocity,glm::vec3 color, bool isStatic=false);
     virtual void process(float dt, Shaders* shader, Camera* camera);
+    virtual bool collides() {return true;}
 };
 
 #endif
