@@ -306,8 +306,7 @@ glm::vec3 ConvexCollider::support(glm::vec3 d)
 			if (glm::length(dirXZ) < 1e-6f) dirXZ = glm::vec3(1,0,0);
 			dirXZ = glm::normalize(dirXZ);
 			glm::vec3 basePoint = base + dirXZ * values.x;
-			return glm::dot(apex, d) > glm::dot(basePoint, d)
-				? apex : basePoint;
+			return glm::dot(apex, d) > glm::dot(basePoint, d) ? apex : basePoint;
 		}
 		case ConvexType::Capsule: 
 		{

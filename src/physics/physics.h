@@ -3,12 +3,10 @@
 
 #include "particleEmitter.h"
 #include "rectangular.h"
+#include "cone.h"
 #include <unordered_map>
 
 
-
-
-using CellKey = std::tuple<int,int,int>;
 extern float cellSize;
 
 struct CellKeyHash 
@@ -34,11 +32,15 @@ class PhysicsModule
     void applyForceAeroDyn(GameObject* object);
     template<typename T>
     void applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera);
-    void simpleCollision(GameObject* o1, GameObject* o2);
+    void parseCollisionsNonGrid(GameObject* o1);
     void applyCollision(GameObject* o1, GameObject* o2);
-    void applyCollisions(GameObject* o1, GameObject* o2);
+    void checkCollisions(GameObject* o1, GameObject* o2);
     void addElementToGrid(GameObject* o);
     void refreshGrid(float fpsTime, Shaders* shader, Camera* camera);
+
+    void createRandomBall(modelImporter* importer, glm::vec3 offset, int randCount, float division, glm::vec3 speed = glm::vec3(0.0f));
+    void createBoundingBox(modelImporter* importer, float borderOfDomain, glm::vec3 pos);
+
 public:
     PhysicsModule() {};
     PhysicsModule(modelImporter* importer, Shaders* shaderprogram);

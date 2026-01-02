@@ -6,7 +6,7 @@ class Rectangular : public GameObject
 {
     public:
     ~Rectangular() = default;
-    Rectangular(modelImporter *importer, glm::vec3 size, glm::vec3 position, glm::vec3 velocity,glm::vec3 color, bool isStatic=false);
+    Rectangular(modelImporter *importer, glm::vec3 size, glm::vec3 position, glm::vec3 velocity,glm::vec3 color, bool isStatic=false, bool visible=true);
 };
 
 

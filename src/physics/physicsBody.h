@@ -27,6 +27,7 @@ public:
     
     void setPosition(glm::vec3 position) {this->pos=position;}
     void setVelocity(glm::vec3 velocity) {this->vel=velocity;}
+    bool getIsStatic(){return isStatic;}
 };
 
 #endif

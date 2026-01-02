@@ -3,10 +3,12 @@
 
 #include "model.h"
 #include "colliders.h"
+using CellKey = std::tuple<int,int,int>;
 
 class GameObject
 {
 protected:
+    bool visible;
 	static int elementsNum;
 	long id;
 	bool deleted = false;
@@ -15,8 +17,8 @@ protected:
 public:
     PhysicsBody body;
     std::shared_ptr<Collider> colliders;
-
-    GameObject(const char* name, modelImporter *importer);
+    CellKey primaryCell;
+    GameObject(const char* name, modelImporter *importer, bool visible=true);
     virtual ~GameObject() = default;
     virtual bool collidesWith(GameObject* o) {return o->collides();}
     virtual bool collides() {return true;}
