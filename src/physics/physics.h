@@ -1,7 +1,7 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
-#include "particleEmitter.h"
+#include "snowEmitter.h"
 #include "rectangular.h"
 #include "cone.h"
 #include <unordered_map>
@@ -41,11 +41,15 @@ class PhysicsModule
     void createRandomBall(modelImporter* importer, glm::vec3 offset, int randCount, float division, glm::vec3 speed = glm::vec3(0.0f));
     void createBoundingBox(modelImporter* importer, float borderOfDomain, glm::vec3 pos);
 
+    void testingSetting(modelImporter* importer, Shaders* shaderProgram);
+    void christmasSetting(modelImporter* importer, Shaders* shaderProgram);
+
 public:
     PhysicsModule() {};
     PhysicsModule(modelImporter* importer, Shaders* shaderprogram);
     void process(float fpsTime, Shaders* shaderProgram, Camera* camera);
     void addNewGravityCenter(glm::vec3 pos);
+    bool guiEnabled;
     bool gravity = false;
 	bool aero = false;
     float mu = -4.0f;

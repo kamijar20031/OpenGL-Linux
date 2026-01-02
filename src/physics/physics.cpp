@@ -2,6 +2,39 @@
 
 PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 {
+	christmasSetting(importer, shaderProgram);
+}
+
+void PhysicsModule::christmasSetting(modelImporter* importer, Shaders* shaderProgram)
+{
+	guiEnabled = false;
+	float offset = -20.0f;
+	float groundHeight = 0.01f;
+	float coneHeight = 2.0f;
+	float barkHeight = 0.5f;
+	borderOfDomain = 8.0f;
+	centerOfDomain = glm::vec3(0.0f,0.0f,offset);
+	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), centerOfDomain.x, centerOfDomain.y - borderOfDomain + 3.5f*coneHeight + 2*barkHeight + 2*groundHeight, centerOfDomain.z);
+
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(borderOfDomain*100.0f ,groundHeight*100.0f,borderOfDomain*100.0f), glm::vec3(centerOfDomain.x,-borderOfDomain +centerOfDomain.y, centerOfDomain.z), glm::vec3(0.0f),glm::vec3(0.36f, 0.20f, 0.02f),true));
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(barkHeight*100.0f , barkHeight*100.0f,barkHeight*100.0f), glm::vec3(centerOfDomain.x,centerOfDomain.y - borderOfDomain + 2*groundHeight + barkHeight, centerOfDomain.z), glm::vec3(0.0f),glm::vec3(0.36f, 0.20f, 0.02f),true));
+	for (int i=0; i<3; i++)
+		objects.emplace_back(std::make_shared<Cone>(importer, coneHeight*100, coneHeight*100,	glm::vec3(centerOfDomain.x,centerOfDomain.y - borderOfDomain + 2*barkHeight + 2*groundHeight + i*coneHeight/1.3f + coneHeight/2.0f,centerOfDomain.z),glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,0.6f,0.1f), true));
+
+	for (int i=-1; i<=1; i++)
+	{
+		for (int j=-1; j<=1; j++)
+		{
+			particleEmitters.emplace_back(std::make_shared<SnowEmitter>(importer, glm::vec3(centerOfDomain.x+i*2*borderOfDomain/3.0f,centerOfDomain.y+borderOfDomain*0.3f,centerOfDomain.z + 2*j*borderOfDomain/3.0f), 0.0, 5000, 10.0f));
+		}
+	}
+
+
+}
+
+void PhysicsModule::testingSetting(modelImporter* importer, Shaders* shaderProgram)
+{
+	guiEnabled = true;
     int randCount = 50;
 	float offset = -10.0f;
 	borderOfDomain = 4.0f;
@@ -11,14 +44,16 @@ PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), 0.0f, 0.0f, offset);
 	gravityPoints.push_back(glm::vec3(centerOfDomain));
 	particleEmitters.emplace_back(std::make_shared<ParticleEmitter>(importer, glm::vec3(0.0f,0.0f,-10.0f), 0.0, 5.0, 1000));
-	// for (int i=0;i<200; i++)
-	// {
-	// 	createRandomBall(importer, glm::vec3(0.0f,0.0f,offset), randCount, division);
-	// }
+	for (int i=0;i<200; i++)
+	{
+		createRandomBall(importer, glm::vec3(0.0f,0.0f,offset), randCount, division);
+	}
 	createBoundingBox(importer, borderOfDomain, glm::vec3(0.0f,0.0f, offset));
 
 	objects.emplace_back(std::make_shared<Cone>(importer, 120.0f, 240.0f,	glm::vec3(2.0f,0.0f,offset),glm::vec3(0.0f,0.0f,0.0f), glm::vec3(1.0f,0.0f,0.0f)));
 }
+
+
 
 
 void PhysicsModule::createRandomBall(modelImporter* importer, glm::vec3 offset, int randCount, float division, glm::vec3 speed)
@@ -73,7 +108,7 @@ void PhysicsModule::applyForceAeroDyn(GameObject* object)
 void PhysicsModule::checkCollisions(GameObject* o1, GameObject* o2)
 {
 	if (o1->getID()!=o2->getID())
-		if (o1->collidesWith(o2) && (!o1->body.getIsStatic() || !o2->body.getIsStatic()))
+		if ((o1->collidesWith(o2) || o2->collidesWith(o1) ) && (!o1->body.getIsStatic() || !o2->body.getIsStatic()))
 		{
 			if (o1->colliders->testCollision(&(o1->body), (o2->colliders).get(), &(o2->body)))
 			{
@@ -140,7 +175,7 @@ void PhysicsModule::applyCollision(GameObject* o1, GameObject* o2)
 
 
 	// Do pozniejszej implementacji
-    float e = 1.0f;
+    float e = 0.0f;
     float j = -(1.0f+e)*retvel;
     j /= invMassA+invMassB;
 
@@ -148,6 +183,26 @@ void PhysicsModule::applyCollision(GameObject* o1, GameObject* o2)
 	
     o1->body.setVelocity(o1->body.getVelocity()+impulse*invMassA);
     o2->body.setVelocity(o2->body.getVelocity()-impulse*invMassB);
+
+	// tarcie - do implementacji w osobnej metodzie
+	glm::vec3 v_rel = o1->body.getVelocity() - o2->body.getVelocity();
+	glm::vec3 v_normal = glm::dot(v_rel, n) * n;
+	glm::vec3 v_tangent = v_rel - v_normal;
+
+	float tLen = glm::length(v_tangent);
+	if (tLen > 1e-6f)
+		v_tangent /= tLen;
+	else
+		v_tangent = glm::vec3(0.0f);
+
+	float jt = -glm::dot(v_rel, v_tangent);
+	jt /= invMassA + invMassB;
+	float mu = 0.3f;
+	float maxFriction = j * mu;
+	jt = glm::clamp(jt, -maxFriction, maxFriction);
+	glm::vec3 frictionImpulse = jt * v_tangent;
+	o1->body.setVelocity(o1->body.getVelocity() + frictionImpulse * invMassA);
+	o2->body.setVelocity(o2->body.getVelocity() - frictionImpulse * invMassB);
 }
 
 
@@ -225,7 +280,8 @@ void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camer
 	applyPhysicsToElements(particleEmitters, fpsTime, shaderProgram, camera);
 	for (auto it = particleEmitters.begin(); it != particleEmitters.end(); )
     {
-		applyPhysicsToElements((*it)->particles,  fpsTime, shaderProgram, camera);
+		preprocessVector((*it)->particles, fpsTime, shaderProgram, camera);
+		// applyPhysicsToElements((*it)->particles,  fpsTime, shaderProgram, camera);
 		++it;
     }
 	for (auto& [key, cell] : grid)

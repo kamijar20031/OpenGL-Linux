@@ -23,7 +23,7 @@ void ParticleEmitter::process(float dt, Shaders* shader, Camera* camera)
     {
         if (particles.size() <maxParticles)
         {
-            for (int i=0; i<5; i++)
+            for (int i=0; i<speed; i++)
                 this->generateARandomParticle();
         }
     }

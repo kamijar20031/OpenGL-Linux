@@ -19,8 +19,8 @@ public:
     std::shared_ptr<Collider> colliders;
     CellKey primaryCell;
     GameObject(const char* name, modelImporter *importer, bool visible=true);
+    bool collidesWith(GameObject* o) {return o->collides();}
     virtual ~GameObject() = default;
-    virtual bool collidesWith(GameObject* o) {return o->collides();}
     virtual bool collides() {return true;}
     virtual void process(float dt, Shaders* shader, Camera* camera);
     bool isDeleted() {return deleted;}
