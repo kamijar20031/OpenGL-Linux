@@ -8,7 +8,7 @@ class SnowEmitter : public ParticleEmitter
 {
 void generateARandomParticle();
     public:
-SnowEmitter(modelImporter *importer, glm::vec3 position, double timeToLive, long numParticles, float particleLifespan, int speed = 1) : ParticleEmitter(importer, position, timeToLive, particleLifespan, numParticles, speed) {}
+SnowEmitter(modelImporter *importer, glm::vec3 position, double timeToLive) : ParticleEmitter(importer, position, timeToLive, 12.0f, 5000, 1) {}
 
 
 };

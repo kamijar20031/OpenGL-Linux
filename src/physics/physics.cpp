@@ -25,7 +25,10 @@ void PhysicsModule::christmasSetting(modelImporter* importer, Shaders* shaderPro
 	{
 		for (int j=-1; j<=1; j++)
 		{
-			particleEmitters.emplace_back(std::make_shared<SnowEmitter>(importer, glm::vec3(centerOfDomain.x+i*2*borderOfDomain/3.0f,centerOfDomain.y+borderOfDomain*0.3f,centerOfDomain.z + 2*j*borderOfDomain/3.0f), 0.0, 5000, 10.0f));
+			particleEmitters.emplace_back(std::make_shared<SnowEmitter>(importer, glm::vec3(centerOfDomain.x+i*2*borderOfDomain/3.0f,centerOfDomain.y+borderOfDomain*0.3f,centerOfDomain.z + 2*j*borderOfDomain/3.0f), 0.0));
+
+			glm::vec3 color = glm::vec3((rand()%255)/255.0f, (rand()%255)/255.0f,(rand()%255)/255.0f);
+			particleEmitters.emplace_back(std::make_shared<FireworkEmitter>(importer, glm::vec3(centerOfDomain.x+i*2*borderOfDomain/3.0f,centerOfDomain.y-borderOfDomain*0.2f,centerOfDomain.z + 2*j*borderOfDomain/3.0f), color));
 		}
 	}
 
@@ -52,9 +55,6 @@ void PhysicsModule::testingSetting(modelImporter* importer, Shaders* shaderProgr
 
 	objects.emplace_back(std::make_shared<Cone>(importer, 120.0f, 240.0f,	glm::vec3(2.0f,0.0f,offset),glm::vec3(0.0f,0.0f,0.0f), glm::vec3(1.0f,0.0f,0.0f)));
 }
-
-
-
 
 void PhysicsModule::createRandomBall(modelImporter* importer, glm::vec3 offset, int randCount, float division, glm::vec3 speed)
 {
@@ -86,7 +86,6 @@ CellKey getCell(glm::vec3 pos)
 	};
 }
 
-
 void PhysicsModule::applyForceGrav(GameObject* object)
 {
     
@@ -108,7 +107,7 @@ void PhysicsModule::applyForceAeroDyn(GameObject* object)
 void PhysicsModule::checkCollisions(GameObject* o1, GameObject* o2)
 {
 	if (o1->getID()!=o2->getID())
-		if ((o1->collidesWith(o2) || o2->collidesWith(o1) ) && (!o1->body.getIsStatic() || !o2->body.getIsStatic()))
+		if ((o1->collidesWith(o2) || o2->collidesWith(o1) ) && (o1->collision && o2->collision) && (!o1->body.getIsStatic() || !o2->body.getIsStatic()))
 		{
 			if (o1->colliders->testCollision(&(o1->body), (o2->colliders).get(), &(o2->body)))
 			{

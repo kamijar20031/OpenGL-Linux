@@ -2,6 +2,7 @@
 #define PHYSICS_H
 
 #include "snowEmitter.h"
+#include "fireworkEmitter.h"
 #include "rectangular.h"
 #include "cone.h"
 #include <unordered_map>
