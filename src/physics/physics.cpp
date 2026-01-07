@@ -211,7 +211,6 @@ void PhysicsModule::addElementToGrid(GameObject* o)
 	float size = o->getSize();
 	CellKey keyMin = getCell(glm::vec3(pos.x-size, pos.y-size, pos.z-size));
 	CellKey keyMax = getCell(glm::vec3(pos.x+size, pos.y+size, pos.z+size));
-	o->primaryCell = getCell(glm::vec3(pos.x, pos.y, pos.z));
 	for (int i =std::get<0>(keyMin); i<=std::get<0>(keyMax);i++)
 	{
 		for (int j =std::get<1>(keyMin); j<=std::get<1>(keyMax);j++)
@@ -270,6 +269,18 @@ void PhysicsModule::applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elem
     }
 }
 
+uint64_t makePairID(GameObject* a, GameObject* b)
+{
+    uint32_t idA = a->getID();
+    uint32_t idB = b->getID();
+
+    uint32_t minID = std::min(idA, idB);
+    uint32_t maxID = std::max(idA, idB);
+
+    return (uint64_t(minID) << 32) | maxID;
+}
+
+
 
 void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camera)
 {
@@ -283,14 +294,19 @@ void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camer
 		// applyPhysicsToElements((*it)->particles,  fpsTime, shaderProgram, camera);
 		++it;
     }
+
+	std::unordered_set<uint64_t> checked;
+
 	for (auto& [key, cell] : grid)
 		for (size_t i = 0; i < cell.size(); ++i)
 		{
 			for (size_t j = i+1; j < cell.size(); ++j)
 			{
-				if (key != cell[i]->primaryCell && key != cell[j]->primaryCell)
-					continue;
-				checkCollisions(cell[i], cell[j]);
+				uint64_t key = makePairID(cell[i], cell[j]);
+				if (checked.insert(key).second)
+				{
+					checkCollisions(cell[i], cell[j]);
+				}
 			}
 		}
 

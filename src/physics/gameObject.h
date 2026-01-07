@@ -18,7 +18,6 @@ public:
     bool collision = true;
     PhysicsBody body;
     std::shared_ptr<Collider> colliders;
-    CellKey primaryCell;
     GameObject(const char* name, modelImporter *importer, bool visible=true);
     bool collidesWith(GameObject* o) {return o->collides();}
     virtual ~GameObject() = default;

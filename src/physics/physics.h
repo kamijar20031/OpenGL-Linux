@@ -6,6 +6,7 @@
 #include "rectangular.h"
 #include "cone.h"
 #include <unordered_map>
+#include <unordered_set>
 
 
 extern float cellSize;
