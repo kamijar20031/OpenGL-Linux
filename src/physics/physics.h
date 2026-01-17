@@ -5,6 +5,7 @@
 #include "fireworkEmitter.h"
 #include "rectangular.h"
 #include "cone.h"
+#include "threadPool.h"
 #include <unordered_map>
 #include <unordered_set>
 
@@ -25,18 +26,19 @@ struct CellKeyHash
 class PhysicsModule
 {
     std::vector <std::shared_ptr<GameObject>> objects;
-    std::vector <std::shared_ptr<ParticleEmitter>> 
-    particleEmitters;
+    std::vector <std::shared_ptr<ParticleEmitter>> particleEmitters;
     std::unordered_map<CellKey, std::vector<GameObject*>, CellKeyHash> grid;
+    ThreadPool pool;
+
+
     template<typename T>
-    void preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera);
+    void preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shaderProgram, Camera* camera);
     void applyForceGrav(GameObject* object);
     void applyForceAeroDyn(GameObject* object);
     template<typename T>
     void applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera);
     void parseCollisionsNonGrid(GameObject* o1);
     void applyCollision(GameObject* o1, GameObject* o2);
-    void checkCollisions(GameObject* o1, GameObject* o2);
     void addElementToGrid(GameObject* o);
     void refreshGrid(float fpsTime, Shaders* shader, Camera* camera);
 
@@ -49,6 +51,7 @@ class PhysicsModule
 public:
     PhysicsModule() {};
     PhysicsModule(modelImporter* importer, Shaders* shaderprogram);
+    void checkCollisions(GameObject* o1, GameObject* o2);
     void process(float fpsTime, Shaders* shaderProgram, Camera* camera);
     void addNewGravityCenter(glm::vec3 pos);
     bool guiEnabled;

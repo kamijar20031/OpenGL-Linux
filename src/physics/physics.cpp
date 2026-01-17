@@ -2,6 +2,7 @@
 
 PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 {
+	pool = ThreadPool(36);
 	christmasSetting(importer, shaderProgram);
 }
 
@@ -224,7 +225,7 @@ void PhysicsModule::addElementToGrid(GameObject* o)
 	}
 }
 template<typename T>
-void PhysicsModule::preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera)
+void PhysicsModule::preprocessVector(std::vector<std::shared_ptr<T>>& elements,  float fpsTime, Shaders* shader, Camera* camera)
 {
 	for (auto it = elements.begin(); it != elements.end(); )
 	{
@@ -234,8 +235,8 @@ void PhysicsModule::preprocessVector(std::vector<std::shared_ptr<T>>& elements, 
 				this->applyForceGrav((it->get()));
 			if (aero)
 				this->applyForceAeroDyn(it->get());
-			(*it)->process(fpsTime, shader, camera);
 			addElementToGrid(it->get());
+			(*it)->process(fpsTime, shader, camera);
 			++it;
 			
 		}
@@ -271,6 +272,7 @@ void PhysicsModule::applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elem
 
 uint64_t makePairID(GameObject* a, GameObject* b)
 {
+	
     uint32_t idA = a->getID();
     uint32_t idB = b->getID();
 
@@ -284,16 +286,12 @@ uint64_t makePairID(GameObject* a, GameObject* b)
 
 void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camera)
 {
-	grid.clear();
-	preprocessVector(objects, fpsTime, shaderProgram, camera);
-	// applyPhysicsToElements(objects, fpsTime, shaderProgram, camera);
-	applyPhysicsToElements(particleEmitters, fpsTime, shaderProgram, camera);
-	for (auto it = particleEmitters.begin(); it != particleEmitters.end(); )
-    {
-		preprocessVector((*it)->particles, fpsTime, shaderProgram, camera);
-		// applyPhysicsToElements((*it)->particles,  fpsTime, shaderProgram, camera);
-		++it;
-    }
+	
+	this->grid.clear();
+	this->preprocessVector(objects, fpsTime, shaderProgram, camera);
+	this->applyPhysicsToElements(particleEmitters, fpsTime, shaderProgram, camera);
+	for (auto i : particleEmitters)
+		this->preprocessVector(i->particles, fpsTime, shaderProgram, camera);
 
 	std::unordered_set<uint64_t> checked;
 
@@ -306,11 +304,11 @@ void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camer
 				if (checked.insert(key).second)
 				{
 					checkCollisions(cell[i], cell[j]);
+					
 				}
 			}
 		}
 
-				
 
 }
 void PhysicsModule::addNewGravityCenter(glm::vec3 pos)
