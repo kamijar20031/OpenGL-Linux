@@ -270,7 +270,7 @@ bool SphereCollider::collidedWithSphere( PhysicsBody* a,  SphereCollider* b,  Ph
 	float dist2 = glm::dot(d, d);
 	return dist2 <= r * r;	
 }
-// Do zaimplementowania
+
 bool ConvexCollider::collidedWithSphere( PhysicsBody* a,  SphereCollider* b,  PhysicsBody* bBody) 
 {
 	return gjkIntersect(this, a->getPosition(), b, bBody->getPosition());

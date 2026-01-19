@@ -22,6 +22,7 @@ public:
 
     glm::vec3 getPosition() {return this->pos;}
     glm::vec3 getVelocity() {return this->vel;}
+    glm::vec3 getAcceleration() {return this->acc;}
     float getMass() {return this->mass;}
 
     

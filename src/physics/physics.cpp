@@ -3,7 +3,8 @@
 PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 {
 	pool = ThreadPool(36);
-	christmasSetting(importer, shaderProgram);
+	testingSetting(importer, shaderProgram);
+	// softBodyTestSetting(importer, shaderProgram);
 }
 
 void PhysicsModule::christmasSetting(modelImporter* importer, Shaders* shaderProgram)
@@ -57,6 +58,22 @@ void PhysicsModule::testingSetting(modelImporter* importer, Shaders* shaderProgr
 	objects.emplace_back(std::make_shared<Cone>(importer, 120.0f, 240.0f,	glm::vec3(2.0f,0.0f,offset),glm::vec3(0.0f,0.0f,0.0f), glm::vec3(1.0f,0.0f,0.0f)));
 }
 
+void PhysicsModule::softBodyTestSetting(modelImporter* importer, Shaders* shaderProgram)
+{
+	guiEnabled = true;
+	glm::vec3 halfExtent = glm::vec3(1.0f,2.0f,1.0f);
+	float groundHeight = 0.01f;
+	float offset = -10.0f;
+	borderOfDomain = 8.0f;
+	centerOfDomain = glm::vec3(0.0f,0.0f,offset);
+	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), centerOfDomain.x, centerOfDomain.y, centerOfDomain.z);
+
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(borderOfDomain*100.0f ,groundHeight*100.0f,borderOfDomain*100.0f), glm::vec3(centerOfDomain.x,-borderOfDomain +centerOfDomain.y, centerOfDomain.z), glm::vec3(0.0f),glm::vec3(0.36f, 0.20f, 0.02f),true));
+
+	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y-borderOfDomain + groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, 0.6f, 0.7f, glm::vec3(1.0f,0.0f,0.0f)));
+	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y - groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, 0.6f, 0.7f, glm::vec3(1.0f,0.0f,0.0f)));
+}
+
 void PhysicsModule::createRandomBall(modelImporter* importer, glm::vec3 offset, int randCount, float division, glm::vec3 speed)
 {
 	float size = (rand()%randCount)/1.5f+1.5;
@@ -107,14 +124,18 @@ void PhysicsModule::applyForceAeroDyn(GameObject* object)
 
 void PhysicsModule::checkCollisions(GameObject* o1, GameObject* o2)
 {
-	if (o1->getID()!=o2->getID())
-		if ((o1->collidesWith(o2) || o2->collidesWith(o1) ) && (o1->collision && o2->collision) && (!o1->body.getIsStatic() || !o2->body.getIsStatic()))
-		{
-			if (o1->colliders->testCollision(&(o1->body), (o2->colliders).get(), &(o2->body)))
-			{
-				applyCollision(o1, o2);
-			}
-		}
+	if (o1->getID()==o2->getID())
+		return;
+
+	if (((o1->collisionLayer & o2->collisionMask) == 0 || (o2->collisionLayer & o1->collisionMask) == 0))
+		return;
+
+	if ((o1->body.getIsStatic() && o2->body.getIsStatic()))
+		return;
+		
+	if (o1->colliders->testCollision(&(o1->body), (o2->colliders).get(), &(o2->body)))
+			applyCollision(o1, o2);
+		
 };
 
 void PhysicsModule::parseCollisionsNonGrid(GameObject* o1)
@@ -292,6 +313,10 @@ void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camer
 	this->applyPhysicsToElements(particleEmitters, fpsTime, shaderProgram, camera);
 	for (auto i : particleEmitters)
 		this->preprocessVector(i->particles, fpsTime, shaderProgram, camera);
+
+	this->applyPhysicsToElements(softBodies, fpsTime, shaderProgram, camera);
+	for (auto i : softBodies)
+		this->preprocessVector(i->vertices, fpsTime, shaderProgram, camera);
 
 	std::unordered_set<uint64_t> checked;
 

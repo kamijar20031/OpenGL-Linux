@@ -6,6 +6,7 @@
 #include "rectangular.h"
 #include "cone.h"
 #include "threadPool.h"
+#include "softRectangular.h"
 #include <unordered_map>
 #include <unordered_set>
 
@@ -27,6 +28,7 @@ class PhysicsModule
 {
     std::vector <std::shared_ptr<GameObject>> objects;
     std::vector <std::shared_ptr<ParticleEmitter>> particleEmitters;
+    std::vector <std::shared_ptr<SoftBody>> softBodies;
     std::unordered_map<CellKey, std::vector<GameObject*>, CellKeyHash> grid;
     ThreadPool pool;
 
@@ -47,6 +49,7 @@ class PhysicsModule
 
     void testingSetting(modelImporter* importer, Shaders* shaderProgram);
     void christmasSetting(modelImporter* importer, Shaders* shaderProgram);
+    void softBodyTestSetting(modelImporter* importer, Shaders* shaderProgram);
 
 public:
     PhysicsModule() {};
