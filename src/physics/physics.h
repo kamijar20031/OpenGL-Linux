@@ -60,6 +60,8 @@ public:
     bool guiEnabled;
     bool gravity = false;
 	bool aero = false;
+    float stiffness = 0.6f;
+
     float mu = -4.0f;
     float borderOfDomain;
     glm::vec3 centerOfDomain;

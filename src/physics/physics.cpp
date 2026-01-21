@@ -3,8 +3,8 @@
 PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 {
 	pool = ThreadPool(36);
-	testingSetting(importer, shaderProgram);
-	// softBodyTestSetting(importer, shaderProgram);
+	// testingSetting(importer, shaderProgram);
+	softBodyTestSetting(importer, shaderProgram);
 }
 
 void PhysicsModule::christmasSetting(modelImporter* importer, Shaders* shaderProgram)
@@ -68,10 +68,9 @@ void PhysicsModule::softBodyTestSetting(modelImporter* importer, Shaders* shader
 	centerOfDomain = glm::vec3(0.0f,0.0f,offset);
 	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), centerOfDomain.x, centerOfDomain.y, centerOfDomain.z);
 
-	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(borderOfDomain*100.0f ,groundHeight*100.0f,borderOfDomain*100.0f), glm::vec3(centerOfDomain.x,-borderOfDomain +centerOfDomain.y, centerOfDomain.z), glm::vec3(0.0f),glm::vec3(0.36f, 0.20f, 0.02f),true));
+	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y-borderOfDomain + groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, stiffness, glm::vec3(1.0f,0.0f,0.0f)));
+	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y - groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, stiffness, glm::vec3(1.0f,0.0f,0.0f)));
 
-	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y-borderOfDomain + groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, 0.6f, 0.7f, glm::vec3(1.0f,0.0f,0.0f)));
-	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y - groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, 0.6f, 0.7f, glm::vec3(1.0f,0.0f,0.0f)));
 }
 
 void PhysicsModule::createRandomBall(modelImporter* importer, glm::vec3 offset, int randCount, float division, glm::vec3 speed)
@@ -307,7 +306,6 @@ uint64_t makePairID(GameObject* a, GameObject* b)
 
 void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camera)
 {
-	
 	this->grid.clear();
 	this->preprocessVector(objects, fpsTime, shaderProgram, camera);
 	this->applyPhysicsToElements(particleEmitters, fpsTime, shaderProgram, camera);

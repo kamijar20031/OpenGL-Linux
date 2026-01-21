@@ -23,8 +23,6 @@ void SoftBodyVertex::process(float dt, Shaders* shader, Camera* camera)
 
     if (visible)
     {   
-        // std::cout <<this->body.getPosition().x << " " << this->body.getPosition().y << " " << this->body.getPosition().z << std::endl;
-        // std::this_thread::sleep_for(std::chrono::milliseconds(10));
         this->model.translation = this->body.getPosition();
         this->model.draw(shader, camera);
     }
