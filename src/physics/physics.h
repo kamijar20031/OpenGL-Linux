@@ -2,10 +2,12 @@
 #define PHYSICS_H
 
 #include "snowEmitter.h"
+#include "fireworkEmitter.h"
 #include "rectangular.h"
 #include "cone.h"
 #include <unordered_map>
-#include <numbers>
+#include <unordered_set>
+
 
 extern float cellSize;
 

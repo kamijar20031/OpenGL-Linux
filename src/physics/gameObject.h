@@ -15,14 +15,15 @@ protected:
     float time;
     glModel model;
 public:
+    bool collision = true;
     PhysicsBody body;
     std::shared_ptr<Collider> colliders;
-    CellKey primaryCell;
     GameObject(const char* name, modelImporter *importer, bool visible=true);
     bool collidesWith(GameObject* o) {return o->collides();}
     virtual ~GameObject() = default;
     virtual bool collides() {return true;}
     virtual void process(float dt, Shaders* shader, Camera* camera);
+    void setCollision(bool value) {collision = value;}
     bool isDeleted() {return deleted;}
 	long getID() {return this->id;}
     float getSize();
