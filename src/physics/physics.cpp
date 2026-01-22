@@ -180,8 +180,10 @@ void PhysicsModule::applyCollision(GameObject* o1, GameObject* o2)
 
     glm::vec3 impulse = j*n;
 	
-    o1->body.setVelocity(o1->body.getVelocity()+impulse*invMassA);
-    o2->body.setVelocity(o2->body.getVelocity()-impulse*invMassB);
+	if (!o1->body.getIsStatic())
+    	o1->body.setVelocity(o1->body.getVelocity()+impulse*invMassA);
+	if (!o2->body.getIsStatic())
+    	o2->body.setVelocity(o2->body.getVelocity()-impulse*invMassB);
 
 	// tarcie - do implementacji w osobnej metodzie
 	glm::vec3 v_rel = o1->body.getVelocity() - o2->body.getVelocity();
@@ -200,8 +202,10 @@ void PhysicsModule::applyCollision(GameObject* o1, GameObject* o2)
 	float maxFriction = j * mu;
 	jt = glm::clamp(jt, -maxFriction, maxFriction);
 	glm::vec3 frictionImpulse = jt * v_tangent;
-	o1->body.setVelocity(o1->body.getVelocity() + frictionImpulse * invMassA);
-	o2->body.setVelocity(o2->body.getVelocity() - frictionImpulse * invMassB);
+	if (!o1->body.getIsStatic())
+		o1->body.setVelocity(o1->body.getVelocity() + frictionImpulse * invMassA);
+	if (!o2->body.getIsStatic())	
+		o2->body.setVelocity(o2->body.getVelocity() - frictionImpulse * invMassB);
 }
 
 
