@@ -14,6 +14,8 @@ void GameObject::process(float dt, Shaders* shader, Camera* camera)
 
 GameObject::GameObject(const char* name, modelImporter* importer, bool visible)
 {
+    collisionLayer = COLLIDE_SOLID;
+    collisionMask = COLLIDE_SOLID | COLLIDE_PARTICLE;
     this->visible= visible;
     this->model = glModel(name, importer);
     this->id = GameObject::elementsNum;

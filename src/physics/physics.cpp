@@ -2,7 +2,9 @@
 
 PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 {
-	christmasSetting(importer, shaderProgram);
+	pool = ThreadPool(36);
+	// testingSetting(importer, shaderProgram);
+	softBodyTestSetting(importer, shaderProgram);
 }
 
 void PhysicsModule::christmasSetting(modelImporter* importer, Shaders* shaderProgram)
@@ -56,6 +58,21 @@ void PhysicsModule::testingSetting(modelImporter* importer, Shaders* shaderProgr
 	objects.emplace_back(std::make_shared<Cone>(importer, 120.0f, 240.0f,	glm::vec3(2.0f,0.0f,offset),glm::vec3(0.0f,0.0f,0.0f), glm::vec3(1.0f,0.0f,0.0f)));
 }
 
+void PhysicsModule::softBodyTestSetting(modelImporter* importer, Shaders* shaderProgram)
+{
+	guiEnabled = true;
+	glm::vec3 halfExtent = glm::vec3(1.0f,2.0f,1.0f);
+	float groundHeight = 0.01f;
+	float offset = -10.0f;
+	borderOfDomain = 8.0f;
+	centerOfDomain = glm::vec3(0.0f,0.0f,offset);
+	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), centerOfDomain.x, centerOfDomain.y, centerOfDomain.z);
+
+	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y-borderOfDomain + groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, stiffness, glm::vec3(1.0f,0.0f,0.0f)));
+	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y - groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, stiffness, glm::vec3(1.0f,0.0f,0.0f)));
+
+}
+
 void PhysicsModule::createRandomBall(modelImporter* importer, glm::vec3 offset, int randCount, float division, glm::vec3 speed)
 {
 	float size = (rand()%randCount)/1.5f+1.5;
@@ -106,14 +123,18 @@ void PhysicsModule::applyForceAeroDyn(GameObject* object)
 
 void PhysicsModule::checkCollisions(GameObject* o1, GameObject* o2)
 {
-	if (o1->getID()!=o2->getID())
-		if ((o1->collidesWith(o2) || o2->collidesWith(o1) ) && (o1->collision && o2->collision) && (!o1->body.getIsStatic() || !o2->body.getIsStatic()))
-		{
-			if (o1->colliders->testCollision(&(o1->body), (o2->colliders).get(), &(o2->body)))
-			{
-				applyCollision(o1, o2);
-			}
-		}
+	if (o1->getID()==o2->getID())
+		return;
+
+	if (((o1->collisionLayer & o2->collisionMask) == 0 || (o2->collisionLayer & o1->collisionMask) == 0))
+		return;
+
+	if ((o1->body.getIsStatic() && o2->body.getIsStatic()))
+		return;
+		
+	if (o1->colliders->testCollision(&(o1->body), (o2->colliders).get(), &(o2->body)))
+			applyCollision(o1, o2);
+		
 };
 
 void PhysicsModule::parseCollisionsNonGrid(GameObject* o1)
@@ -228,7 +249,7 @@ void PhysicsModule::addElementToGrid(GameObject* o)
 	}
 }
 template<typename T>
-void PhysicsModule::preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera)
+void PhysicsModule::preprocessVector(std::vector<std::shared_ptr<T>>& elements,  float fpsTime, Shaders* shader, Camera* camera)
 {
 	for (auto it = elements.begin(); it != elements.end(); )
 	{
@@ -238,8 +259,8 @@ void PhysicsModule::preprocessVector(std::vector<std::shared_ptr<T>>& elements, 
 				this->applyForceGrav((it->get()));
 			if (aero)
 				this->applyForceAeroDyn(it->get());
-			(*it)->process(fpsTime, shader, camera);
 			addElementToGrid(it->get());
+			(*it)->process(fpsTime, shader, camera);
 			++it;
 			
 		}
@@ -275,6 +296,7 @@ void PhysicsModule::applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elem
 
 uint64_t makePairID(GameObject* a, GameObject* b)
 {
+	
     uint32_t idA = a->getID();
     uint32_t idB = b->getID();
 
@@ -288,16 +310,15 @@ uint64_t makePairID(GameObject* a, GameObject* b)
 
 void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camera)
 {
-	grid.clear();
-	preprocessVector(objects, fpsTime, shaderProgram, camera);
-	// applyPhysicsToElements(objects, fpsTime, shaderProgram, camera);
-	applyPhysicsToElements(particleEmitters, fpsTime, shaderProgram, camera);
-	for (auto it = particleEmitters.begin(); it != particleEmitters.end(); )
-    {
-		preprocessVector((*it)->particles, fpsTime, shaderProgram, camera);
-		// applyPhysicsToElements((*it)->particles,  fpsTime, shaderProgram, camera);
-		++it;
-    }
+	this->grid.clear();
+	this->preprocessVector(objects, fpsTime, shaderProgram, camera);
+	this->applyPhysicsToElements(particleEmitters, fpsTime, shaderProgram, camera);
+	for (auto i : particleEmitters)
+		this->preprocessVector(i->particles, fpsTime, shaderProgram, camera);
+
+	this->applyPhysicsToElements(softBodies, fpsTime, shaderProgram, camera);
+	for (auto i : softBodies)
+		this->preprocessVector(i->vertices, fpsTime, shaderProgram, camera);
 
 	std::unordered_set<uint64_t> checked;
 
@@ -310,11 +331,11 @@ void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camer
 				if (checked.insert(key).second)
 				{
 					checkCollisions(cell[i], cell[j]);
+					
 				}
 			}
 		}
 
-				
 
 }
 void PhysicsModule::addNewGravityCenter(glm::vec3 pos)

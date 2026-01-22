@@ -8,6 +8,7 @@ class ParticleEmitter : public Ball
 {
 protected:
     modelImporter* importer;
+    float genRadius;
     int speed;
     double timeToLive;
     double time = 0.0;
@@ -17,7 +18,7 @@ protected:
 public:
     std::vector<std::shared_ptr<Particle>> particles;
     ~ParticleEmitter() = default;
-    ParticleEmitter(modelImporter *importer, glm::vec3 position, double timeToLive, double particleLifespan, long numParticles, int generationSpeed=5) : Ball(importer, 1.0f, position, glm::vec3(0.0f), glm::vec3(0.0f)), importer(importer), timeToLive(timeToLive), particleLifespan(particleLifespan), maxParticles(numParticles), speed(generationSpeed) {}
+    ParticleEmitter(modelImporter *importer, glm::vec3 position, double timeToLive, double particleLifespan, long numParticles, int generationSpeed=5, float generationRadius = 0.5f) : Ball(importer, 1.0f, position, glm::vec3(0.0f), glm::vec3(0.0f)), importer(importer), timeToLive(timeToLive), particleLifespan(particleLifespan), maxParticles(numParticles), speed(generationSpeed), genRadius(generationRadius) {collisionMask = COLLIDE_NONE;}
     void process(float dt, Shaders* shader, Camera* camera);
 };
 
