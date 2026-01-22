@@ -52,7 +52,7 @@ void GameComponents::render()
 	camera.updateMat(45.0f, 0.1f, 100.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	physics.process(std::max(fpsTime, 0.0), &shaderProgram, &camera);;
-	if (physics.guiEnabled)
+	if (PhysicsModule::guiEnabled)
 		GUI.draw(&physics);
 	this->inputs();
 	// Jak na razie nie jest potrzebny ale moze sie przydac w przyszlosci

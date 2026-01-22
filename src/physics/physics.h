@@ -47,7 +47,7 @@ class PhysicsModule
     void refreshGrid(float fpsTime, Shaders* shader, Camera* camera);
 
     void createRandomBall(modelImporter* importer, glm::vec3 offset, int randCount, float division, glm::vec3 speed = glm::vec3(0.0f));
-    void createBoundingBox(modelImporter* importer, float borderOfDomain, glm::vec3 pos);
+    void createBoundingBox(modelImporter* importer, glm::vec3 pos);
 
     void testingSetting(modelImporter* importer, Shaders* shaderProgram);
     void christmasSetting(modelImporter* importer, Shaders* shaderProgram);
@@ -59,12 +59,12 @@ public:
     void checkCollisions(GameObject* o1, GameObject* o2);
     void process(float fpsTime, Shaders* shaderProgram, Camera* camera);
     void addNewGravityCenter(glm::vec3 pos);
-    bool guiEnabled;
+    static bool guiEnabled;
     static bool gravity;
 	static bool aero;
     static float stiffness;
     static float mu;
-    float borderOfDomain;
+    static float borderOfDomain;
     glm::vec3 centerOfDomain;
     std::vector <glm::vec3> gravityPoints;
 

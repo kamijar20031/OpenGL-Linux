@@ -51,7 +51,7 @@ void GuiModule::draw(PhysicsModule* physics)
 		ImGui::SliderFloat("Polozenie X", &physics->centerOfDomain.x, -10, 10);
 		ImGui::SliderFloat("Polozenie Y", &physics->centerOfDomain.y, -10, 10);
 		ImGui::SliderFloat("Polozenie Z", &physics->centerOfDomain.z, -20, 0);
-		ImGui::SliderFloat("Szerokosc polowy boku", &physics->borderOfDomain, 1, 10);
+		ImGui::SliderFloat("Szerokosc polowy boku", &PhysicsModule::borderOfDomain, 1, 10);
 	}
 	ImGui::End();
 

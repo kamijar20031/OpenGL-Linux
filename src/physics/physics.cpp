@@ -5,6 +5,9 @@ float PhysicsModule::stiffness = 0.7f;
 float PhysicsModule::mu = -3.0f;
 bool PhysicsModule::gravity = false;
 bool PhysicsModule::aero = false;
+bool PhysicsModule::guiEnabled = true;
+float PhysicsModule::borderOfDomain = 8.0f;
+
 PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 {
 	pool = ThreadPool(36);
@@ -15,28 +18,27 @@ PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 
 void PhysicsModule::christmasSetting(modelImporter* importer, Shaders* shaderProgram)
 {
-	guiEnabled = false;
+	PhysicsModule::guiEnabled = false;
 	float offset = -20.0f;
 	float groundHeight = 0.01f;
 	float coneHeight = 2.0f;
 	float barkHeight = 0.5f;
-	borderOfDomain = 8.0f;
 	centerOfDomain = glm::vec3(0.0f,0.0f,offset);
-	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), centerOfDomain.x, centerOfDomain.y - borderOfDomain + 3.5f*coneHeight + 2*barkHeight + 2*groundHeight, centerOfDomain.z);
+	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), centerOfDomain.x, centerOfDomain.y - PhysicsModule::borderOfDomain + 3.5f*coneHeight + 2*barkHeight + 2*groundHeight, centerOfDomain.z);
 
-	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(borderOfDomain*100.0f ,groundHeight*100.0f,borderOfDomain*100.0f), glm::vec3(centerOfDomain.x,-borderOfDomain +centerOfDomain.y, centerOfDomain.z), glm::vec3(0.0f),glm::vec3(0.36f, 0.20f, 0.02f),true));
-	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(barkHeight*100.0f , barkHeight*100.0f,barkHeight*100.0f), glm::vec3(centerOfDomain.x,centerOfDomain.y - borderOfDomain + 2*groundHeight + barkHeight, centerOfDomain.z), glm::vec3(0.0f),glm::vec3(0.36f, 0.20f, 0.02f),true));
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(PhysicsModule::borderOfDomain*100.0f ,groundHeight*100.0f,PhysicsModule::borderOfDomain*100.0f), glm::vec3(centerOfDomain.x,-PhysicsModule::borderOfDomain +centerOfDomain.y, centerOfDomain.z), glm::vec3(0.0f),glm::vec3(0.36f, 0.20f, 0.02f),true));
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(barkHeight*100.0f , barkHeight*100.0f,barkHeight*100.0f), glm::vec3(centerOfDomain.x,centerOfDomain.y - PhysicsModule::borderOfDomain + 2*groundHeight + barkHeight, centerOfDomain.z), glm::vec3(0.0f),glm::vec3(0.36f, 0.20f, 0.02f),true));
 	for (int i=0; i<3; i++)
-		objects.emplace_back(std::make_shared<Cone>(importer, coneHeight*100, coneHeight*100,	glm::vec3(centerOfDomain.x,centerOfDomain.y - borderOfDomain + 2*barkHeight + 2*groundHeight + i*coneHeight/1.3f + coneHeight/2.0f,centerOfDomain.z),glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,0.6f,0.1f), true));
+		objects.emplace_back(std::make_shared<Cone>(importer, coneHeight*100, coneHeight*100,	glm::vec3(centerOfDomain.x,centerOfDomain.y - PhysicsModule::borderOfDomain + 2*barkHeight + 2*groundHeight + i*coneHeight/1.3f + coneHeight/2.0f,centerOfDomain.z),glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,0.6f,0.1f), true));
 
 	for (int i=-1; i<=1; i++)
 	{
 		for (int j=-1; j<=1; j++)
 		{
-			particleEmitters.emplace_back(std::make_shared<SnowEmitter>(importer, glm::vec3(centerOfDomain.x+i*2*borderOfDomain/3.0f,centerOfDomain.y+borderOfDomain*0.3f,centerOfDomain.z + 2*j*borderOfDomain/3.0f), 0.0));
+			particleEmitters.emplace_back(std::make_shared<SnowEmitter>(importer, glm::vec3(centerOfDomain.x+i*2*PhysicsModule::borderOfDomain/3.0f,centerOfDomain.y+PhysicsModule::borderOfDomain*0.3f,centerOfDomain.z + 2*j*PhysicsModule::borderOfDomain/3.0f), 0.0));
 
 			glm::vec3 color = glm::vec3((rand()%255)/255.0f, (rand()%255)/255.0f,(rand()%255)/255.0f);
-			particleEmitters.emplace_back(std::make_shared<FireworkEmitter>(importer, glm::vec3(centerOfDomain.x+i*2*borderOfDomain/3.0f,centerOfDomain.y-borderOfDomain*0.2f,centerOfDomain.z + 2*j*borderOfDomain/3.0f), color));
+			particleEmitters.emplace_back(std::make_shared<FireworkEmitter>(importer, glm::vec3(centerOfDomain.x+i*2*PhysicsModule::borderOfDomain/3.0f,centerOfDomain.y-PhysicsModule::borderOfDomain*0.2f,centerOfDomain.z + 2*j*PhysicsModule::borderOfDomain/3.0f), color));
 		}
 	}
 
@@ -45,12 +47,11 @@ void PhysicsModule::christmasSetting(modelImporter* importer, Shaders* shaderPro
 
 void PhysicsModule::testingSetting(modelImporter* importer, Shaders* shaderProgram)
 {
-	guiEnabled = true;
     int randCount = 50;
 	float offset = -10.0f;
-	borderOfDomain = 4.0f;
+	PhysicsModule::borderOfDomain = 4.0f;
 	centerOfDomain = glm::vec3(0.0f,0.0f,offset);
-	float division = (float)(randCount/2)/(borderOfDomain-0.1f);
+	float division = (float)(randCount/2)/(PhysicsModule::borderOfDomain-0.1f);
 	float speedDiv = 45.0f;
 	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), 0.0f, 0.0f, offset);
 	gravityPoints.push_back(glm::vec3(centerOfDomain));
@@ -59,22 +60,20 @@ void PhysicsModule::testingSetting(modelImporter* importer, Shaders* shaderProgr
 	{
 		createRandomBall(importer, glm::vec3(0.0f,0.0f,offset), randCount, division);
 	}
-	createBoundingBox(importer, borderOfDomain, glm::vec3(0.0f,0.0f, offset));
+	createBoundingBox(importer, glm::vec3(0.0f,0.0f, offset));
 
 	objects.emplace_back(std::make_shared<Cone>(importer, 120.0f, 240.0f,	glm::vec3(2.0f,0.0f,offset),glm::vec3(0.0f,0.0f,0.0f), glm::vec3(1.0f,0.0f,0.0f)));
 }
 
 void PhysicsModule::softBodyTestSetting(modelImporter* importer, Shaders* shaderProgram)
 {
-	guiEnabled = true;
 	glm::vec3 halfExtent = glm::vec3(1.0f,2.0f,1.0f);
 	float groundHeight = 0.01f;
 	float offset = -10.0f;
-	borderOfDomain = 8.0f;
 	centerOfDomain = glm::vec3(0.0f,0.0f,offset);
 	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), centerOfDomain.x, centerOfDomain.y, centerOfDomain.z);
 
-	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y-borderOfDomain + groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, glm::vec3(1.0f,0.0f,0.0f)));
+	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y-PhysicsModule::borderOfDomain + groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, glm::vec3(1.0f,0.0f,0.0f)));
 	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y - groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6,  glm::vec3(1.0f,0.0f,0.0f)));
 
 }
@@ -88,14 +87,14 @@ void PhysicsModule::createRandomBall(modelImporter* importer, glm::vec3 offset, 
 	objects.emplace_back(std::make_shared<Ball>(importer, size, position, speed,color));
 }
 
-void PhysicsModule::createBoundingBox(modelImporter* importer, float borderOfDomain, glm::vec3 pos)
+void PhysicsModule::createBoundingBox(modelImporter* importer, glm::vec3 pos)
 {
-	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(borderOfDomain*100.0f ,10.0f,borderOfDomain*100.0f), glm::vec3(pos.x,-borderOfDomain +pos.y, pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f),true, false));
-	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(borderOfDomain*100.0f,10.0f,borderOfDomain*100.0f), glm::vec3(pos.x,pos.y + borderOfDomain, pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f), true, false));
-	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(10.0f,borderOfDomain*100.0f,borderOfDomain*100.0f), glm::vec3(borderOfDomain + pos.x,pos.y, pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f), true, false));
-	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(10.0f,borderOfDomain*100.0f,borderOfDomain*100.0f), glm::vec3(-borderOfDomain+pos.x,pos.y, pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f), true, false));
-	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(borderOfDomain*100.0f,borderOfDomain*100.0f,10.0f), glm::vec3(pos.x,pos.y, borderOfDomain+pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f), true, false));
-	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(borderOfDomain*100.0f,borderOfDomain*100.0f,10.0f), glm::vec3(pos.x,pos.y, -borderOfDomain+pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f), true, false));
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(PhysicsModule::borderOfDomain*100.0f ,10.0f,PhysicsModule::borderOfDomain*100.0f), glm::vec3(pos.x,-PhysicsModule::borderOfDomain +pos.y, pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f),true, false));
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(PhysicsModule::borderOfDomain*100.0f,10.0f,PhysicsModule::borderOfDomain*100.0f), glm::vec3(pos.x,pos.y + PhysicsModule::borderOfDomain, pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f), true, false));
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(10.0f,PhysicsModule::borderOfDomain*100.0f,PhysicsModule::borderOfDomain*100.0f), glm::vec3(PhysicsModule::borderOfDomain + pos.x,pos.y, pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f), true, false));
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(10.0f,PhysicsModule::borderOfDomain*100.0f,PhysicsModule::borderOfDomain*100.0f), glm::vec3(-PhysicsModule::borderOfDomain+pos.x,pos.y, pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f), true, false));
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(PhysicsModule::borderOfDomain*100.0f,PhysicsModule::borderOfDomain*100.0f,10.0f), glm::vec3(pos.x,pos.y, PhysicsModule::borderOfDomain+pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f), true, false));
+	objects.emplace_back(std::make_shared<Rectangular>(importer, glm::vec3(PhysicsModule::borderOfDomain*100.0f,PhysicsModule::borderOfDomain*100.0f,10.0f), glm::vec3(pos.x,pos.y, -PhysicsModule::borderOfDomain+pos.z), glm::vec3(0.0f),glm::vec3(1.0f,1.0f,1.0f), true, false));
 }
 
 float cellSize = 1.0f;
