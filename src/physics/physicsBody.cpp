@@ -11,7 +11,7 @@ void PhysicsBody::calcPhysics(float dt)
 }
 void PhysicsBody::applyForce(glm::vec3 force)
 {
-    this->acc = force/mass;
+    this->acc += force/mass;
 }
 void PhysicsBody::resetForce()
 {

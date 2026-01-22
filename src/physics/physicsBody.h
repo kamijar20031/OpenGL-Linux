@@ -8,6 +8,8 @@
 class PhysicsBody
 {
 	float mass;
+    float m_Friction = 0.3f;
+    float m_Elasticity = 1.0f;
     glm::vec3 pos;
     glm::vec3 acc;
 	glm::vec3 vel;
@@ -19,16 +21,19 @@ public:
     void calcPhysics(float dt);
     void applyForce(glm::vec3 force);
     void resetForce();
-
     glm::vec3 getPosition() {return this->pos;}
     glm::vec3 getVelocity() {return this->vel;}
     glm::vec3 getAcceleration() {return this->acc;}
     float getMass() {return this->mass;}
-
+    float getElasticity() {return this->m_Elasticity;}
+    float getFriction() {return this->m_Friction;}
+    bool getIsStatic(){return isStatic;}
     
     void setPosition(glm::vec3 position) {this->pos=position;}
     void setVelocity(glm::vec3 velocity) {this->vel=velocity;}
-    bool getIsStatic(){return isStatic;}
+    void setElasticity(float e) {this->m_Elasticity = e;}
+    void setFriction(float f) {this->m_Friction = f;}
+
 };
 
 #endif

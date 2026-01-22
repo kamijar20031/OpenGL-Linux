@@ -16,17 +16,12 @@ struct SoftBodySpring
 class SoftBody : public GameObject
 {
 protected:
-    std::vector<std::shared_ptr<SoftBodySpring>> springs;
-    float mStiffness; 
+    std::vector<std::shared_ptr<SoftBodySpring>> springs; 
 public:
     std::vector<std::shared_ptr<SoftBodyVertex>> vertices;
-    SoftBody(modelImporter* importer, float stiffness) : GameObject("resources/models/ball/ball.obj", importer, false), mStiffness(stiffness) {};
+    SoftBody(modelImporter* importer) : GameObject("resources/models/ball/ball.obj", importer, false) {};
     virtual void process(float dt, Shaders* shader, Camera* camera);
-
-    float getStiffness()
-    {
-        return mStiffness;
-    }
+    void processElasticForces(float stiffness);
 };
 
 #endif

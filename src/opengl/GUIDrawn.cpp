@@ -20,9 +20,9 @@ void GuiModule::draw(PhysicsModule* physics)
 	ImGui::Begin("Ustawienia");
 	if (ImGui::CollapsingHeader("Sily"))
 	{
-		ImGui::Checkbox("Grawitacja", &(physics->gravity));
-		ImGui::Checkbox("Opor aerodynamiczny", &(physics->aero));
-		ImGui::SliderFloat("Potega stalej oporu aerodyn.", &physics->mu, -3.0f,-5.0f);
+		ImGui::Checkbox("Grawitacja", &PhysicsModule::gravity);
+		ImGui::Checkbox("Opor aerodynamiczny", &PhysicsModule::gravity);
+		ImGui::SliderFloat("Potega stalej oporu aerodyn.", &PhysicsModule::mu, -1.0f,-5.0f);
 	}
 
 	if (ImGui::CollapsingHeader("Punkty przyciagania grawitacyjnego"))

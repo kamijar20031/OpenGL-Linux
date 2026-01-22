@@ -1,10 +1,16 @@
 #include "physics.h"
 
+
+float PhysicsModule::stiffness = 0.7f;
+float PhysicsModule::mu = -3.0f;
+bool PhysicsModule::gravity = false;
+bool PhysicsModule::aero = false;
 PhysicsModule::PhysicsModule(modelImporter* importer, Shaders* shaderProgram)
 {
 	pool = ThreadPool(36);
-	// testingSetting(importer, shaderProgram);
-	softBodyTestSetting(importer, shaderProgram);
+	// christmasSetting(importer, shaderProgram);
+	testingSetting(importer, shaderProgram);
+	// softBodyTestSetting(importer, shaderProgram);
 }
 
 void PhysicsModule::christmasSetting(modelImporter* importer, Shaders* shaderProgram)
@@ -68,8 +74,8 @@ void PhysicsModule::softBodyTestSetting(modelImporter* importer, Shaders* shader
 	centerOfDomain = glm::vec3(0.0f,0.0f,offset);
 	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), centerOfDomain.x, centerOfDomain.y, centerOfDomain.z);
 
-	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y-borderOfDomain + groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, stiffness, glm::vec3(1.0f,0.0f,0.0f)));
-	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y - groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, stiffness, glm::vec3(1.0f,0.0f,0.0f)));
+	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y-borderOfDomain + groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6, glm::vec3(1.0f,0.0f,0.0f)));
+	softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(centerOfDomain.x, centerOfDomain.y - groundHeight*4.0f + halfExtent.y, centerOfDomain.z), halfExtent,6,  glm::vec3(1.0f,0.0f,0.0f)));
 
 }
 
@@ -118,7 +124,12 @@ void PhysicsModule::applyForceGrav(GameObject* object)
 
 void PhysicsModule::applyForceAeroDyn(GameObject* object)
 {
-    object->body.applyForce(-6.0f*object->body.getVelocity()*(float)(pow(10,mu))*object->getSize()*(float)(std::numbers::pi));
+    object->body.applyForce(-6.0f*object->body.getVelocity()*(float)(pow(10,PhysicsModule::mu))*object->getSize()*(float)(std::numbers::pi));
+}
+
+void PhysicsModule::applyElasticForceForSoftBody(SoftBody* body)
+{
+	body->processElasticForces(PhysicsModule::stiffness);
 }
 
 void PhysicsModule::checkCollisions(GameObject* o1, GameObject* o2)
@@ -143,6 +154,30 @@ void PhysicsModule::parseCollisionsNonGrid(GameObject* o1)
 	{
 		checkCollisions(o1, el.get());
 	}
+}
+
+void PhysicsModule::applyFrictionOnCollision(GameObject* o1, GameObject* o2, glm::vec3 n, float j, float invMassA, float invMassB)
+{
+	glm::vec3 v_rel = o1->body.getVelocity() - o2->body.getVelocity();
+	glm::vec3 v_normal = glm::dot(v_rel, n) * n;
+	glm::vec3 v_tangent = v_rel - v_normal;
+
+	float tLen = glm::length(v_tangent);
+	if (tLen > 1e-6f)
+		v_tangent /= tLen;
+	else
+		v_tangent = glm::vec3(0.0f);
+
+	float jt = -glm::dot(v_rel, v_tangent);
+	jt /= invMassA + invMassB;
+	float mu = std::max(o1->body.getFriction(), o2->body.getFriction());
+	float maxFriction = j * mu;
+	jt = glm::clamp(jt, -maxFriction, maxFriction);
+	glm::vec3 frictionImpulse = jt * v_tangent;
+	if (!o1->body.getIsStatic())
+		o1->body.setVelocity(o1->body.getVelocity() + frictionImpulse * invMassA);
+	if (!o2->body.getIsStatic())	
+		o2->body.setVelocity(o2->body.getVelocity() - frictionImpulse * invMassB);
 }
 
 void PhysicsModule::applyCollision(GameObject* o1, GameObject* o2)
@@ -193,9 +228,7 @@ void PhysicsModule::applyCollision(GameObject* o1, GameObject* o2)
 	if (!o2->body.getIsStatic())
 		o2->body.setPosition(o2->body.getPosition() -correction*invMassB);
 
-
-	// Do pozniejszej implementacji
-    float e = 0.0f;
+    float e = std::min(o1->body.getElasticity(), o2->body.getElasticity());
     float j = -(1.0f+e)*retvel;
     j /= invMassA+invMassB;
 
@@ -206,27 +239,8 @@ void PhysicsModule::applyCollision(GameObject* o1, GameObject* o2)
 	if (!o2->body.getIsStatic())
     	o2->body.setVelocity(o2->body.getVelocity()-impulse*invMassB);
 
-	// tarcie - do implementacji w osobnej metodzie
-	glm::vec3 v_rel = o1->body.getVelocity() - o2->body.getVelocity();
-	glm::vec3 v_normal = glm::dot(v_rel, n) * n;
-	glm::vec3 v_tangent = v_rel - v_normal;
-
-	float tLen = glm::length(v_tangent);
-	if (tLen > 1e-6f)
-		v_tangent /= tLen;
-	else
-		v_tangent = glm::vec3(0.0f);
-
-	float jt = -glm::dot(v_rel, v_tangent);
-	jt /= invMassA + invMassB;
-	float mu = 0.3f;
-	float maxFriction = j * mu;
-	jt = glm::clamp(jt, -maxFriction, maxFriction);
-	glm::vec3 frictionImpulse = jt * v_tangent;
-	if (!o1->body.getIsStatic())
-		o1->body.setVelocity(o1->body.getVelocity() + frictionImpulse * invMassA);
-	if (!o2->body.getIsStatic())	
-		o2->body.setVelocity(o2->body.getVelocity() - frictionImpulse * invMassB);
+	applyFrictionOnCollision(o1,o2,n,j,invMassA, invMassB);
+	
 }
 
 
@@ -255,9 +269,9 @@ void PhysicsModule::preprocessVector(std::vector<std::shared_ptr<T>>& elements, 
 	{
 		if (!(*it)->isDeleted())
 		{
-			if (gravity)
+			if (PhysicsModule::gravity)
 				this->applyForceGrav((it->get()));
-			if (aero)
+			if (PhysicsModule::aero)
 				this->applyForceAeroDyn(it->get());
 			addElementToGrid(it->get());
 			(*it)->process(fpsTime, shader, camera);
@@ -279,9 +293,9 @@ void PhysicsModule::applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elem
         if (!(*it)->isDeleted())
         {
 			(*it)->body.resetForce();
-			if (gravity)
+			if (PhysicsModule::gravity)
 				this->applyForceGrav(it->get());
-			if (aero)
+			if (PhysicsModule::aero)
 				this->applyForceAeroDyn(it->get());
             parseCollisionsNonGrid(it->get());
 			(*it)->process(fpsTime, shader, camera);
@@ -316,9 +330,13 @@ void PhysicsModule::process(float fpsTime, Shaders* shaderProgram, Camera* camer
 	for (auto i : particleEmitters)
 		this->preprocessVector(i->particles, fpsTime, shaderProgram, camera);
 
-	this->applyPhysicsToElements(softBodies, fpsTime, shaderProgram, camera);
-	for (auto i : softBodies)
-		this->preprocessVector(i->vertices, fpsTime, shaderProgram, camera);
+
+	for (auto body : softBodies)
+	{
+		this->applyElasticForceForSoftBody(body.get());
+		this->preprocessVector(body->vertices, fpsTime, shaderProgram, camera);
+	}
+		
 
 	std::unordered_set<uint64_t> checked;
 

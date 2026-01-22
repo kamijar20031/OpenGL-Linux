@@ -1,8 +1,8 @@
 #include "softBody.h"
 
-bool flag = true;
 
-void SoftBody::process(float dt, Shaders* shader, Camera* camera)
+
+void SoftBody::processElasticForces(float stiffness)
 {
     for (auto& spring: springs)
     {
@@ -12,19 +12,20 @@ void SoftBody::process(float dt, Shaders* shader, Camera* camera)
         float len = glm::length(delta);
         if (len < 1e-6f) continue;
         float diff = (len - spring->mRestLength) / len;
-        glm::vec3 f = getStiffness()*spring->mRatio * (len-spring->mRestLength) * glm::normalize(delta);
+        glm::vec3 f = stiffness*spring->mRatio * (len-spring->mRestLength) * glm::normalize(delta);
 
         float w1 = 1.0f / spring->v1->body.getMass();
         float w2 = 1.0f / spring->v2->body.getMass();
         float wsum = w1 + w2;
 
-        glm::vec3 correction = getStiffness()*spring->mRatio * diff * delta;
+        glm::vec3 correction = stiffness*spring->mRatio * diff * delta;
 
         spring->v1->body.setPosition(pos1 + correction * (w1 / wsum));
         spring->v2->body.setPosition(pos2 - correction * (w2 / wsum));
-        if (flag)
-            std::cout << (getStiffness()) << std::endl; 
-        flag = false;
 
     }
+}
+void SoftBody::process(float dt, Shaders* shader, Camera* camera)
+{
+    // Np algorytm face restoration czy cos podobnego
 }

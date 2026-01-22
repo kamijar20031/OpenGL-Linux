@@ -6,7 +6,7 @@ int idx(int x, int y, int z, int N)
     return x + y * N + z * N * N;
 }
 
-SoftRectangular::SoftRectangular(modelImporter* importer, glm::vec3 center, glm::vec3 extents, int resolution, float stiffness, glm::vec3 color = glm::vec3(1.0f,0.0f,0.0f)): SoftBody(importer, stiffness) 
+SoftRectangular::SoftRectangular(modelImporter* importer, glm::vec3 center, glm::vec3 extents, int resolution, glm::vec3 color = glm::vec3(1.0f,0.0f,0.0f)): SoftBody(importer) 
 {
     float difX = 2*extents.x/float(resolution-1);
     float difY = 2*extents.y/float(resolution-1);

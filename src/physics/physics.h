@@ -37,10 +37,12 @@ class PhysicsModule
     void preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shaderProgram, Camera* camera);
     void applyForceGrav(GameObject* object);
     void applyForceAeroDyn(GameObject* object);
+    static void applyElasticForceForSoftBody(SoftBody* body);
     template<typename T>
     void applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera);
     void parseCollisionsNonGrid(GameObject* o1);
     void applyCollision(GameObject* o1, GameObject* o2);
+    void applyFrictionOnCollision(GameObject* o1, GameObject* o2, glm::vec3 n, float j, float invMassA, float invMassB);
     void addElementToGrid(GameObject* o);
     void refreshGrid(float fpsTime, Shaders* shader, Camera* camera);
 
@@ -58,11 +60,10 @@ public:
     void process(float fpsTime, Shaders* shaderProgram, Camera* camera);
     void addNewGravityCenter(glm::vec3 pos);
     bool guiEnabled;
-    bool gravity = false;
-	bool aero = false;
-    float stiffness = 0.6f;
-
-    float mu = -4.0f;
+    static bool gravity;
+	static bool aero;
+    static float stiffness;
+    static float mu;
     float borderOfDomain;
     glm::vec3 centerOfDomain;
     std::vector <glm::vec3> gravityPoints;

@@ -6,7 +6,7 @@
 class SoftRectangular : public SoftBody
 {
     public:
-    SoftRectangular(modelImporter* importer, glm::vec3 center, glm::vec3 extents, int resolution, float stiffness, glm::vec3 color);
+    SoftRectangular(modelImporter* importer, glm::vec3 center, glm::vec3 extents, int resolution, glm::vec3 color);
 };
 
 #endif
