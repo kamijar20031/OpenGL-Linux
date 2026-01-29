@@ -8,7 +8,7 @@
 
 class GameComponents
 {
-	unsigned int MAX_FPS = 120;
+	unsigned int MAX_FPS = 60;
 	double fpsTime = 1 / double(MAX_FPS);
 	modelImporter importer;
 	Shaders shaderProgram;

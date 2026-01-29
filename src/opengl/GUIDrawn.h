@@ -11,7 +11,7 @@ class GuiModule
     public:
     GuiModule() {};
     GuiModule(GLFWwindow* window);
-    void draw(PhysicsModule* physics);
+    void draw();
 };
 
 #endif

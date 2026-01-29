@@ -21,7 +21,7 @@ GameComponents::GameComponents()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "OpenGL", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 	gladLoadGL();
 	glfwSetFramebufferSizeCallback(window, resizeCallback);
 	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -32,8 +32,8 @@ GameComponents::GameComponents()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glFrontFace(GL_CW);
+	PhysicsModule::init(&importer, &shaderProgram);
 	camera = Camera(glm::vec3(0.0f, 0.2f, 0.5f));
-	physics = PhysicsModule(&importer, &shaderProgram);
 	GUI = GuiModule(window);
 	// objects.push_back(new ingameObject("resources/models/sbunny/scene.gltf", &importer));
 }
@@ -51,22 +51,15 @@ void GameComponents::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	camera.updateMat(45.0f, 0.1f, 100.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	physics.process(std::max(fpsTime, 0.0), &shaderProgram, &camera);;
+	PhysicsModule::process(std::max(fpsTime, 0.0), &shaderProgram, &camera);
 	if (PhysicsModule::guiEnabled)
-		GUI.draw(&physics);
+		GUI.draw();
 	this->inputs();
 	// Jak na razie nie jest potrzebny ale moze sie przydac w przyszlosci
 	Clock += (float)fpsTime;
 
 	glfwSwapBuffers(window);
-	duration = glfwGetTime() - previousTime;
 
-	if ( duration< fpsTime)
-	{
-		double remaining = (fpsTime - duration) * 1000.0;
-        std::this_thread::sleep_for(std::chrono::milliseconds((int)remaining));
-	}
-	previousTime = glfwGetTime();
 }
 
 void GameComponents::end()

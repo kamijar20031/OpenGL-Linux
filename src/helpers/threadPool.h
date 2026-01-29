@@ -12,32 +12,16 @@ class ThreadPool
 {
     using Task = std::function<void()>;
     
-    std::vector<std::thread> threads;
-    std::condition_variable cv;
-    bool stopThreads = false;
-    std::mutex mut;
-    std::queue <Task> tasks;
+    static std::vector<std::thread> threads;
+    static std::condition_variable cv;
+    static bool stopThreads;
+    static std::mutex mut;
+    static std::queue <Task> tasks;
 
-    void start (uint8_t numThreads);
 public:
-    void stop();
-    ThreadPool() {};
-    ThreadPool(uint8_t numThreads);
-    ~ThreadPool();
-    void enqueue(Task task);
-        
-    ThreadPool& operator=(ThreadPool&& other) {
-        if (!threads.empty() || stopThreads || !tasks.empty()) {
-            throw std::runtime_error("ThreadPool must be empty to assign new value");
-        }
-
-        threads = std::move(other.threads);
-        tasks = std::move(other.tasks);
-        stopThreads = other.stopThreads;
-        return *this;
-    }
-    ThreadPool(const ThreadPool&) = delete;
-    ThreadPool& operator=(const ThreadPool&) = delete;
+    static void start (uint8_t numThreads);
+    static void stop();
+    static void enqueue(Task task);
 };
 
 #endif

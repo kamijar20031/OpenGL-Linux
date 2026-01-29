@@ -26,47 +26,43 @@ struct CellKeyHash
 
 class PhysicsModule
 {
-    std::vector <std::shared_ptr<GameObject>> objects;
-    std::vector <std::shared_ptr<ParticleEmitter>> particleEmitters;
-    std::vector <std::shared_ptr<SoftBody>> softBodies;
-    std::unordered_map<CellKey, std::vector<GameObject*>, CellKeyHash> grid;
-    ThreadPool pool;
-
+    static std::vector <std::shared_ptr<GameObject>> objects;
+    static std::vector <std::shared_ptr<ParticleEmitter>> particleEmitters;
+    static std::vector <std::shared_ptr<SoftBody>> softBodies;
+    static std::unordered_map<CellKey, std::vector<GameObject*>, CellKeyHash> grid;
 
     template<typename T>
-    void preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shaderProgram, Camera* camera);
-    void applyForceGrav(GameObject* object);
-    void applyForceAeroDyn(GameObject* object);
+    static void preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shaderProgram, Camera* camera);
+    static void applyForceGrav(GameObject* object);
+    static void applyForceAeroDyn(GameObject* object);
     static void applyElasticForceForSoftBody(SoftBody* body);
     template<typename T>
-    void applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera);
-    void parseCollisionsNonGrid(GameObject* o1);
-    void applyCollision(GameObject* o1, GameObject* o2);
-    void applyFrictionOnCollision(GameObject* o1, GameObject* o2, glm::vec3 n, float j, float invMassA, float invMassB);
-    void addElementToGrid(GameObject* o);
-    void refreshGrid(float fpsTime, Shaders* shader, Camera* camera);
+    static void applyPhysicsToElements(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shader, Camera* camera);
+    static void parseCollisionsNonGrid(GameObject* o1);
+    static void applyCollision(GameObject* o1, GameObject* o2);
+    static void applyFrictionOnCollision(GameObject* o1, GameObject* o2, glm::vec3 n, float j, float invMassA, float invMassB);
+    static void addElementToGrid(GameObject* o);
 
-    void createRandomBall(modelImporter* importer, glm::vec3 offset, int randCount, float division, glm::vec3 speed = glm::vec3(0.0f));
-    void createBoundingBox(modelImporter* importer, glm::vec3 pos);
+    static void createRandomBall(modelImporter* importer, glm::vec3 offset, int randCount, float division, glm::vec3 speed = glm::vec3(0.0f));
+    static void createBoundingBox(modelImporter* importer, glm::vec3 pos);
 
-    void testingSetting(modelImporter* importer, Shaders* shaderProgram);
-    void christmasSetting(modelImporter* importer, Shaders* shaderProgram);
-    void softBodyTestSetting(modelImporter* importer, Shaders* shaderProgram);
+    static void testingSetting(modelImporter* importer, Shaders* shaderProgram);
+    static void christmasSetting(modelImporter* importer, Shaders* shaderProgram);
+    static void softBodyTestSetting(modelImporter* importer, Shaders* shaderProgram);
 
 public:
-    PhysicsModule() {};
-    PhysicsModule(modelImporter* importer, Shaders* shaderprogram);
-    void checkCollisions(GameObject* o1, GameObject* o2);
-    void process(float fpsTime, Shaders* shaderProgram, Camera* camera);
-    void addNewGravityCenter(glm::vec3 pos);
+    static void init(modelImporter* importer, Shaders* shaderprogram);
+    static void checkCollisions(GameObject* o1, GameObject* o2);
+    static void process(float fpsTime, Shaders* shaderProgram, Camera* camera);
+    static void addNewGravityCenter(glm::vec3 pos);
     static bool guiEnabled;
     static bool gravity;
 	static bool aero;
     static float stiffness;
     static float mu;
     static float borderOfDomain;
-    glm::vec3 centerOfDomain;
-    std::vector <glm::vec3> gravityPoints;
+    static glm::vec3 centerOfDomain;
+    static std::vector <glm::vec3> gravityPoints;
 
 };
 
