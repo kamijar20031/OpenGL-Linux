@@ -8,8 +8,8 @@
 
 class GameComponents
 {
-	unsigned int MAX_FPS = 60;
-	double fpsTime = 1 / double(MAX_FPS);
+	static unsigned int MAX_FPS;
+	static float fpsTime;
 	modelImporter importer;
 	Shaders shaderProgram;
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -18,7 +18,7 @@ class GameComponents
 	GuiModule GUI;
 	
 	double previousTime = 0;
-	double duration = 0;
+	double duration = GameComponents::fpsTime;
 	double Clock = 0;
 	double current = 0;
 

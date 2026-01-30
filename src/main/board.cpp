@@ -3,6 +3,9 @@
 unsigned int WINDOW_WIDTH = 800;
 unsigned int WINDOW_HEIGHT = 800;
 
+unsigned int GameComponents::MAX_FPS =60;
+float GameComponents::fpsTime = 1 / float(MAX_FPS);
+
 void resizeCallback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
@@ -51,14 +54,17 @@ void GameComponents::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	camera.updateMat(45.0f, 0.1f, 100.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	PhysicsModule::process(std::max(fpsTime, 0.0), &shaderProgram, &camera);
+	PhysicsModule::process((float)duration, &shaderProgram, &camera);
 	if (PhysicsModule::guiEnabled)
 		GUI.draw();
 	this->inputs();
 	// Jak na razie nie jest potrzebny ale moze sie przydac w przyszlosci
-	Clock += (float)fpsTime;
-
+	Clock += GameComponents::fpsTime;
+	
 	glfwSwapBuffers(window);
+	double now = glfwGetTime();
+	duration = now - previousTime;
+	previousTime = now;
 
 }
 
