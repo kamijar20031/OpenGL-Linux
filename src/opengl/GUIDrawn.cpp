@@ -21,6 +21,7 @@ void GuiModule::draw()
 	if (ImGui::CollapsingHeader("Sily"))
 	{
 		ImGui::Checkbox("Grawitacja", &PhysicsModule::gravity);
+		ImGui::SliderFloat("Wartosc przyspieszenie graw.", &PhysicsModule::g, 5.0f, 20.0f);
 		ImGui::Checkbox("Opor aerodynamiczny", &PhysicsModule::aero);
 		ImGui::SliderFloat("Potega stalej oporu aerodyn.", &PhysicsModule::mu, -1.0f,-5.0f);
 	}

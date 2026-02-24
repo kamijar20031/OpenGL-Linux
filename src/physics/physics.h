@@ -34,6 +34,7 @@ class PhysicsModule
     template<typename T>
     static void preprocessVector(std::vector<std::shared_ptr<T>>& elements, float fpsTime, Shaders* shaderProgram, Camera* camera);
     static void applyForceGrav(GameObject* object);
+    static void applyNonPointGravity(GameObject* object);
     static void applyForceAeroDyn(GameObject* object);
     static void applyElasticForceForSoftBody(SoftBody* body);
     template<typename T>
@@ -58,6 +59,7 @@ public:
     static bool guiEnabled;
     static bool gravity;
 	static bool aero;
+    static float g;
     static float stiffness;
     static float mu;
     static float borderOfDomain;

@@ -8,7 +8,7 @@ class SoftBodyVertex : public Ball
     glm::vec3 prevPos =glm::vec3(0.0f);
     bool firstFrame = true;
 public:
-    SoftBodyVertex(modelImporter *importer, glm::vec3 position, glm::vec3 velocity,glm::vec3 color) : Ball(importer, 2.0f, position, velocity, color) 
+    SoftBodyVertex(modelImporter *importer, glm::vec3 position, glm::vec3 velocity,glm::vec3 color, bool isStatic= false) : Ball(importer, 2.0f, position, velocity, color, isStatic) 
     {
         this->prevPos = position;
         collisionLayer = COLLIDE_SOLID;

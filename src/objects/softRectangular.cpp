@@ -27,12 +27,16 @@ SoftRectangular::SoftRectangular(modelImporter* importer, glm::vec3 center, glm:
                     center.z + fz
                 );
 
+                bool s = false;
+                if (j==0)
+                    s=true;
                 vertices.emplace_back(
                     std::make_shared<SoftBodyVertex>(
                         importer,
                         pos,
                         glm::vec3(0.0f),
-                        color
+                        color,
+                        s
                     )
                 );
             }

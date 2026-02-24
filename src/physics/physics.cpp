@@ -7,6 +7,7 @@ bool PhysicsModule::gravity = false;
 bool PhysicsModule::aero = false;
 bool PhysicsModule::guiEnabled = true;
 float PhysicsModule::borderOfDomain = 8.0f;
+float PhysicsModule::g = 9.81f;
 glm::vec3 PhysicsModule::centerOfDomain;
 std::vector <glm::vec3> PhysicsModule::gravityPoints;
 
@@ -19,8 +20,8 @@ void PhysicsModule::init(modelImporter* importer, Shaders* shaderProgram)
 {
 	ThreadPool::start(36);
 	// christmasSetting(importer, shaderProgram);
-	PhysicsModule::testingSetting(importer, shaderProgram);
-	// softBodyTestSetting(importer, shaderProgram);
+	// PhysicsModule::testingSetting(importer, shaderProgram);
+	PhysicsModule::softBodyTestSetting(importer, shaderProgram);
 }
 
 void PhysicsModule::christmasSetting(modelImporter* importer, Shaders* shaderProgram)
@@ -80,8 +81,8 @@ void PhysicsModule::softBodyTestSetting(modelImporter* importer, Shaders* shader
 	PhysicsModule::centerOfDomain = glm::vec3(0.0f,0.0f,offset);
 	glUniform3f(glGetUniformLocation(shaderProgram->getID(), "lightPos"), PhysicsModule::centerOfDomain.x, PhysicsModule::centerOfDomain.y, PhysicsModule::centerOfDomain.z);
 
-	PhysicsModule::softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(PhysicsModule::centerOfDomain.x, PhysicsModule::centerOfDomain.y-PhysicsModule::borderOfDomain + groundHeight*4.0f + halfExtent.y, PhysicsModule::centerOfDomain.z), halfExtent,6, glm::vec3(1.0f,0.0f,0.0f)));
-	PhysicsModule::softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(PhysicsModule::centerOfDomain.x, PhysicsModule::centerOfDomain.y - groundHeight*4.0f + halfExtent.y, PhysicsModule::centerOfDomain.z), halfExtent,6,  glm::vec3(1.0f,0.0f,0.0f)));
+	PhysicsModule::softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(PhysicsModule::centerOfDomain.x, PhysicsModule::centerOfDomain.y-PhysicsModule::borderOfDomain + groundHeight*4.0f + halfExtent.y, PhysicsModule::centerOfDomain.z), halfExtent,10, glm::vec3(1.0f,0.0f,0.0f)));
+	// PhysicsModule::softBodies.emplace_back(std::make_shared<SoftRectangular>(importer, glm::vec3(PhysicsModule::centerOfDomain.x, PhysicsModule::centerOfDomain.y - groundHeight*4.0f + halfExtent.y, PhysicsModule::centerOfDomain.z), halfExtent,6,  glm::vec3(1.0f,0.0f,0.0f)));
 
 }
 
@@ -119,6 +120,7 @@ void PhysicsModule::applyForceGrav(GameObject* object)
 {
     
     float epsilon = 0.2f;
+	PhysicsModule::applyNonPointGravity(object);
 	for (auto& i : PhysicsModule::gravityPoints)
 	{
 		glm::vec3 mag3 = object->body.getPosition()-i;
@@ -126,6 +128,12 @@ void PhysicsModule::applyForceGrav(GameObject* object)
 		object->body.applyForce(-mag3/(float)(pow(magL+epsilon, 3.0f)));
 	}
 		
+}
+
+void PhysicsModule::applyNonPointGravity(GameObject* object)
+{
+	object->body.applyForce(-g*glm::vec3(0.0f,1.0f,0.0f)*object->body.getMass());
+
 }
 
 void PhysicsModule::applyForceAeroDyn(GameObject* object)
